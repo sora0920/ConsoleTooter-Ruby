@@ -32,7 +32,7 @@ def load_account(file)
   return ac
 end
 
-def PostToot (vis, cw, account, body, reply_id, media_id)
+def PostToot (vis, cw, account, body, reply_id, media_id, sen)
   uri = URI.parse("https://" + account["host"] + "/api/v1/statuses")
   https = Net::HTTP.new(uri.host, uri.port)
   https.use_ssl = true
@@ -44,7 +44,8 @@ def PostToot (vis, cw, account, body, reply_id, media_id)
             visibility: vis,
             spoiler_text: cw,
             in_reply_to_id: reply_id,
-            media_ids: media_id
+            media_ids: media_id,
+            sensitive: sen
   }.to_json
 
   req["Content-Type"] = "application/json"
@@ -101,6 +102,7 @@ vis = "public"
 cw = ""
 reply_id = ""
 media_id = []
+sen = false
 
 OptionParser.new do |opt|
   opt.on('--pb',              'Specify visibility as public'                      ) { vis = "public" }
@@ -110,6 +112,7 @@ OptionParser.new do |opt|
   opt.on('--cw [TEXT]',       'Use CW. Please Input CW Text for After this option') { |cw| cw = "#{cw}" }
   opt.on('--re [Reply to ID]','Post as a reply'                                   ) { |re| reply_id = "#{re.to_i}"}
   opt.on('--media [path]',    'Post with images'                                  ) { |media| media_id.push(postmedia(account, media))}
+  opt.on('--nsfw',            'Give an NSFW flag if there is an image'            ) { sen = true }
   
   opt.parse!(ARGV)
 end
@@ -122,4 +125,4 @@ end
 
 body = ARGV[0]
 
-PostToot(vis, cw, account, body, reply_id, media_id)
+PostToot(vis, cw, account, body, reply_id, media_id, sen)
