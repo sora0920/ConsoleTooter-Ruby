@@ -54,8 +54,8 @@ def PostToot (vis, cw, account, body, reply_id, media_id)
 
   res = https.request(req)
 
-  puts "code -> #{res.code}"
-  puts "msg -> #{res.message}"
+  puts res.code
+  puts res.message
 end
 
 def postmedia(account, filename)
@@ -122,13 +122,4 @@ end
 
 body = ARGV[0]
 
-
 PostToot(vis, cw, account, body, reply_id, media_id)
-
-
-
-
-
-
-
-
