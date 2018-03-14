@@ -6,6 +6,32 @@ require 'uri'
 require 'json'
 require 'mime/types'
 
+def load_account(file)
+  begin
+    file = File.open(file, "a+")
+  rescue
+    puts "Error"
+    exit 1
+  end
+
+  file_str = []
+  file.each_line do |line|
+    file_str.push(line.chop)
+  end
+
+  file_str = file_str.join("\n")
+  
+  file.close
+
+  begin 
+    ac = JSON.parse(file_str)
+  rescue
+    puts "Parse Error"
+    exit 1
+  end
+  return ac
+end
+
 def PostToot (vis, cw, account, body, reply_id, media_id)
   uri = URI.parse("https://" + account["host"] + "/api/v1/statuses")
   https = Net::HTTP.new(uri.host, uri.port)
@@ -21,23 +47,18 @@ def PostToot (vis, cw, account, body, reply_id, media_id)
             media_ids: media_id
   }.to_json
 
-
-  token = " Bearer " + account["token"]
-
   req["Content-Type"] = "application/json"
-  req["Authorization"] = token
+  req["Authorization"] = " Bearer " + account["token"]
 
   req.body = data
 
   res = https.request(req)
 
-  $http_status_code = "code -> #{res.code}"
-  $http_msg = "msg -> #{res.message}"
-  $http_body = "body -> #{JSON.parse(res.body)}"
+  puts "code -> #{res.code}"
+  puts "msg -> #{res.message}"
 end
 
 def postmedia(account, filename)
-
   begin
     file = File.open(filename, "a+")
   rescue
@@ -54,9 +75,7 @@ def postmedia(account, filename)
   
   data = [ ["file", file.read , { filename: File.basename(filename), content_type: MIME::Types.type_for(filename)[0].to_s }] ]
 
-  token = " Bearer " + account["token"]
-
-  req["Authorization"] = token
+  req["Authorization"] = " Bearer " + account["token"]
   req["Content-Type"] = "multipart/form-data"
 
   req.set_form(data, "multipart/form-data")
@@ -77,35 +96,11 @@ def postmedia(account, filename)
 end
 
 
-def load_account(file)
-  begin
-    file = File.open(file, "a+")
-  rescue
-    puts "Error"
-    exit 1
-  end
-
-  file_str = []
-  file.each_line do |line|
-    file_str.push(line.chop)
-  end
-
-  file_str = file_str.join("\n")
-  
-  begin 
-    ac = JSON.parse(file_str)
-  rescue
-    puts "Parse Error"
-    exit 1
-  end
-  return ac
-end
-
+account = load_account("account.json")
 vis = "public"
 cw = ""
 reply_id = ""
 media_id = []
-account = {}
 
 OptionParser.new do |opt|
   opt.on('--pb',              'Specify visibility as public'                      ) { vis = "public" }
@@ -127,11 +122,9 @@ end
 
 body = ARGV[0]
 
-account = load_account("account.json")
+
 PostToot(vis, cw, account, body, reply_id, media_id)
 
-puts $http_status_code
-puts $http_msg
 
 
 
