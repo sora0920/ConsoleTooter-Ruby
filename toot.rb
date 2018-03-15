@@ -32,7 +32,7 @@ def load_account(file)
   return ac
 end
 
-def PostToot (vis, cw, account, body, reply_id, media_id, sen)
+def posttoot (vis, cw, account, body, reply_id, media_id, sen)
   uri = URI.parse("https://" + account["host"] + "/api/v1/statuses")
   https = Net::HTTP.new(uri.host, uri.port)
   https.use_ssl = true
@@ -125,4 +125,4 @@ end
 
 body = ARGV[0]
 
-PostToot(vis, cw, account, body, reply_id, media_id, sen)
+posttoot(vis, cw, account, body, reply_id, media_id, sen)
