@@ -44,6 +44,7 @@ class User
     }
   end
 
+
   def name
     @display_name
   end
@@ -127,6 +128,10 @@ class Toot
     }
   end
 
+  def img
+    @media_attachments
+  end
+
   def print
     puts "#{@account.name} @#{@account.acct}"
     if !@spoiler_text.empty?
@@ -146,6 +151,16 @@ class Toot
 
     puts t.text
     puts "\n"
+  end
+
+  def printimg
+    imgs = self.img
+
+    imgs.each do |img|
+      if img["type"] == "image"
+        system("img2sixel #{img["preview_url"]}")
+      end
+    end
   end
 
 
@@ -191,7 +206,7 @@ def load_account(file)
   return ac
 end
 
-def timeline_load(account, tl, param)
+def timeline_load(account, tl, param, img)
   uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
 
   uri.query = URI.encode_www_form(param)
@@ -219,6 +234,10 @@ def timeline_load(account, tl, param)
     end
     t = Toot.new(toot)
     t.print
+    if img
+      t.printimg
+      puts "\n"
+    end
     i += 1
   }
 end
@@ -248,8 +267,8 @@ account = load_account("account.json")
 tl = "home?"
 limit = `tput lines`
 stream = false
-meediaonly = false
 param = Hash.new
+img = false
 
 OptionParser.new do |opt|
   opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
@@ -259,7 +278,7 @@ OptionParser.new do |opt|
                                                                              }
   opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
   opt.on('--stream',          'Start up in streaming mode'                 ) { stream = true }
-  opt.on('--mediaonly',       'Retrieve only posts that include media'     ) { mediaonly = true }
+  opt.on('--onlymedia',       'Retrieve only posts that include media'     ) { param.store("only_media", "1") }
   opt.on('--list [ID]',       'Display list timeline'                      ) { |id| tl = "list/#{id}?" }
   opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'      ) { |lim| limit = lim }
   opt.on('--lists',           'Retrieving lists'                           ) { 
@@ -270,6 +289,11 @@ OptionParser.new do |opt|
   opt.parse!(ARGV)
 end
 
+
+if system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg > /dev/null")
+  img = true
+end
+
 param.store("limit", "#{limit}")
-timeline_load(account, tl, param)
+timeline_load(account, tl, param, img)
 
