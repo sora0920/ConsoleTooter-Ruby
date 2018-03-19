@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "ncurses.rb"
 require "json"
 require "net/http"
