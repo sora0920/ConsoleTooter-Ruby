@@ -206,7 +206,7 @@ def load_account(file)
   return ac
 end
 
-def timeline_load(account, tl, param, img)
+def timeline_load(account, tl, param, img, rev)
   uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
 
   uri.query = URI.encode_www_form(param)
@@ -226,20 +226,42 @@ def timeline_load(account, tl, param, img)
   end
   
   
-  i = 0
   toots = JSON.parse(res.body)
-  toots.each{|toot|
-    if i > param["limit"].to_i - 1
-      exit 0
-    end
-    t = Toot.new(toot)
-    t.print
-    if img
-      t.printimg
-      puts "\n"
-    end
-    i += 1
-  }
+  
+  i = 0
+  if rev
+    toots.each{|toot|
+      if i > param["limit"].to_i - 1
+        exit 0
+      end
+      t = Toot.new(toot)
+      t.print
+      if img
+        t.printimg
+        puts "\n"
+      end
+      i += 1
+    }
+  else
+    _toots = []
+
+    toots.each{|toot|
+      if i > param["limit"].to_i - 1
+        puts "break!"
+        break
+      end
+      _toots.unshift(toot)
+      i += 1
+    }
+    _toots.each{|toot|
+      t = Toot.new(toot)
+      t.print
+      if img
+        t.printimg
+        puts "\n"
+      end
+    }
+  end
 end
 
 def listlist(account)
@@ -264,11 +286,12 @@ def listlist(account)
 
 
 account = load_account("account.json")
-tl = "home?"
+tl = "home"
 limit = `tput lines`
 stream = false
 param = Hash.new
 img = false
+rev = false
 
 OptionParser.new do |opt|
   opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
@@ -285,15 +308,16 @@ OptionParser.new do |opt|
                                                                                listlist(account) 
                                                                                exit 0
                                                                              }
+  opt.on('--rev',             'Inversion of order'                         ) { rev = true }
   
   opt.parse!(ARGV)
 end
 
 
-if system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg > /dev/null")
+if system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg >& /dev/null")
   img = true
 end
 
 param.store("limit", "#{limit}")
-timeline_load(account, tl, param, img)
+timeline_load(account, tl, param, img, rev)
 
