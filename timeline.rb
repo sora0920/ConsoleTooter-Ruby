@@ -53,7 +53,17 @@ class User
   end
 
   def reload
-    puts "未実装"
+    uri = URI.parse("https://#{account["host"]}/api/v1/accounts/#{@id}")
+    
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    
+    req = Net::HTTP::Get.new(uri.path)
+    req["Authorization"] = " Bearer " + account["token"]
+
+    res = https.request(req)
+
+    self.initialize(JSON.parse(res.body))
   end
 
 end
@@ -139,8 +149,18 @@ class Toot
   end
 
 
-  def reload
-    puts "未実装"
+  def reload(account)
+    uri = URI.parse("https://#{account["host"]}/api/v1/statuses/#{@id}")
+    
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    
+    req = Net::HTTP::Get.new(uri.path)
+    req["Authorization"] = " Bearer " + account["token"]
+
+    res = https.request(req)
+
+    self.initialize(JSON.parse(res.body))
   end
 end
 
@@ -171,23 +191,35 @@ def load_account(file)
   return ac
 end
 
-def timeline_load(account, tl, limit)
-  uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}limit=#{limit}")
+def timeline_load(account, tl, param)
+  uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
+
+  uri.query = URI.encode_www_form(param)
 
   https = Net::HTTP.new(uri.host, uri.port)
   https.use_ssl = true
 
-  req = Net::HTTP::Get.new(uri.path)
+  req = Net::HTTP::Get.new(uri.request_uri)
   req["Authorization"] = " Bearer " + account["token"]
 
   res = https.request(req)
-
-  puts res.code
   
+  if res.code != "200"
+    puts res.code
+    puts res.message
+    puts res.body
+  end
+  
+  
+  i = 0
   toots = JSON.parse(res.body)
   toots.each{|toot|
+    if i > param["limit"].to_i - 1
+      exit 0
+    end
     t = Toot.new(toot)
     t.print
+    i += 1
   }
 end
 
@@ -209,22 +241,23 @@ def listlist(account)
     li = list
     puts "#{li["id"]}  #{li["title"]}"  
   }
-end
+  end
 
-def timeline_parse(json)
-  puts "未実装" 
-end
 
 account = load_account("account.json")
 tl = "home?"
 limit = `tput lines`
 stream = false
-mediaonly = false
+meediaonly = false
+param = Hash.new
 
 OptionParser.new do |opt|
-  opt.on('--home',            'Display home timeline'                      ) { tl = "home?" }
-  opt.on('--local',           'Display local timeline'                     ) { tl = "public?local=true&" }
-  opt.on('--public',          'Display public timeline'                    ) { tl = "public?" }
+  opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
+  opt.on('--local',           'Display local timeline'                     ) { 
+                                                                                tl = "public"
+                                                                                param.store("local","1")
+                                                                             }
+  opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
   opt.on('--stream',          'Start up in streaming mode'                 ) { stream = true }
   opt.on('--mediaonly',       'Retrieve only posts that include media'     ) { mediaonly = true }
   opt.on('--list [ID]',       'Display list timeline'                      ) { |id| tl = "list/#{id}?" }
@@ -237,7 +270,6 @@ OptionParser.new do |opt|
   opt.parse!(ARGV)
 end
 
-
-
-timeline_load(account, tl, limit)
+param.store("limit", "#{limit}")
+timeline_load(account, tl, param)
 
