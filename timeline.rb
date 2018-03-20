@@ -208,7 +208,7 @@ def load_account(file)
   return ac
 end
 
-def timeline_load(account, tl, param, img, rev)
+def timeline_load(account, tl, param)
   uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
 
   uri.query = URI.encode_www_form(param)
@@ -228,8 +228,10 @@ def timeline_load(account, tl, param, img, rev)
   end
   
   
-  toots = JSON.parse(res.body)
-  
+  return JSON.parse(res.body)
+end  
+
+def print_timeline(toots, rev, param, img)
   i = 0
   if rev
     toots.each{|toot|
@@ -321,5 +323,5 @@ if system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg 
 end
 
 param.store("limit", "#{limit}")
-timeline_load(account, tl, param, img, rev)
+print_timeline(timeline_load(account, tl, param), rev, param, img)
 
