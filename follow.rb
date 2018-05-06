@@ -33,7 +33,6 @@ end
 
 def follow (account, id)
   if /^\w+$/ === id
-    puts "match"
     id += "@#{account["host"]}"
   end
 
