@@ -135,9 +135,7 @@ class Toot
   end
 
   def print_toot
-    print "\e[33m"
-    puts "#{@account.name} @#{@account.acct}"
-    print "\e[0m"
+    print "\e[33m#{@account.name}\e[32m @#{@account.acct}\e[0m\n"
 
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
