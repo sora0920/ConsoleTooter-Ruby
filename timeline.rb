@@ -134,8 +134,9 @@ class Toot
     @media_attachments
   end
 
-  def print
-    puts "#{@account.name} @#{@account.acct}"
+  def print_toot
+    print "\e[33m#{@account.name}\e[32m @#{@account.acct}\e[0m\n"
+
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
       s.search('br').each do |br| 
@@ -239,7 +240,7 @@ def print_timeline(toots, rev, param, img)
         exit 0
       end
       t = Toot.new(toot)
-      t.print
+      t.print_toot
       if img
         t.printimg
         puts "\n"
@@ -259,7 +260,7 @@ def print_timeline(toots, rev, param, img)
     }
     _toots.each{|toot|
       t = Toot.new(toot)
-      t.print
+      t.print_toot
       if img
         t.printimg
         puts "\n"
