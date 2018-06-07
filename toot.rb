@@ -97,12 +97,23 @@ def postmedia(account, filename)
 end
 
 
+def to_suddenly_death(toot) 
+  if system("echo-sd TEST! >& /dev/null")
+    str = `echo-sd #{toot}`
+    return str
+  else
+    puts "There is no echo-ed command!"
+    exit!
+  end
+end
+
 account = load_account("account.json")
 vis = "public"
 cw = ""
 reply_id = ""
 media_id = []
 sen = false
+sd = false
 
 OptionParser.new do |opt|
   opt.on('--pb',              'Specify visibility as public'                      ) { vis = "public" }
@@ -113,6 +124,7 @@ OptionParser.new do |opt|
   opt.on('--re [Reply to ID]','Post as a reply'                                   ) { |re| reply_id = "#{re.to_i}"}
   opt.on('--media [path]',    'Post with images'                                  ) { |media| media_id.push(postmedia(account, media))}
   opt.on('--nsfw',            'Give an NSFW flag if there is an image'            ) { sen = true }
+  opt.on('--sd',               'It will be like "totsuzen no shi"'                ) { sd = true }
   
   opt.parse!(ARGV)
 end
@@ -123,6 +135,10 @@ if ARGV[0].nil? || ARGV[0].empty? then
   exit!
 end 
 
-body = ARGV[0]
+if sd
+  body = to_suddenly_death(ARGV[0])
+else
+  body = ARGV[0]
+end
 
 posttoot(vis, cw, account, body, reply_id, media_id, sen)
