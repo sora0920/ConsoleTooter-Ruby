@@ -7,6 +7,7 @@ require "uri"
 require "thread"
 require "nokogiri"
 require "optparse"
+require "time"
 
 class User
   def initialize(account)
@@ -135,7 +136,8 @@ class Toot
   end
 
   def print_toot
-    print "\e[33m#{@account.name}\e[32m @#{@account.acct}\e[0m\n"
+    print "\e[33m#{@account.name}\e[32m @#{@account.acct} "
+    print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")}\n"
 
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
