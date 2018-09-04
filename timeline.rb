@@ -7,6 +7,7 @@ require "uri"
 require "thread"
 require "nokogiri"
 require "optparse"
+require "time"
 
 class User
   def initialize(account)
@@ -102,6 +103,31 @@ class Toot
     @id
   end
 
+  def reblog_parse(toot)
+    @id = toot["id"]
+    @url = toot["url"]
+    @account = User.new(toot["account"])
+    @in_reply_to_id = toot["in_reply_to_id"]
+    @in_reply_to_account_id = toot["in_reply_to_account_id"]
+    @content = toot["content"]
+    @created_at = toot["created_at"]
+    @emojis = toot["emojis"]
+    @reblogs_count = toot["reblogs_count"]
+    @favourites_count = toot["favourites_count"]
+    @reblogged = toot["reblogged"]
+    @favourited = toot["favourited"]
+    @muted = toot["muted"]
+    @sensitive = toot["sensitive"]
+    @spoiler_text = toot["spoiler_text"]
+    @visibility = toot["visibility"]
+    @media_attachments = toot["media_attachments"]
+    @mentions = toot["mentions"]
+    @tags = toot["tags"]
+    @application = toot["application"]
+    @language = toot["language"]
+    @pinned = toot["pinned"]
+  end
+
   def get
     {
       "id": @id,
@@ -135,7 +161,26 @@ class Toot
   end
 
   def print_toot
-    print "\e[33m#{@account.name}\e[32m @#{@account.acct}\e[0m\n"
+    vi = case @visibility
+        when "public" then
+          ""
+        when "unlisted" then
+          "🔓  "
+        when "private" then
+          "🔒  "
+        when "direct" then
+          "✉  "
+        else
+          ""
+      end
+        
+    if !@reblog.to_s.empty?
+      print "\e[32mRT \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+      reblog_parse(@reblog)
+    end
+
+    print "#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
+    print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
 
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")

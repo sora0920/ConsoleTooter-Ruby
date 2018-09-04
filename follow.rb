@@ -18,10 +18,10 @@ def load_account(file)
   end
 
   file_str = file_str.join("\n")
-  
+
   file.close
 
-  begin 
+  begin
     ac = JSON.parse(file_str)
   rescue
     puts "Parse Error"
@@ -65,6 +65,6 @@ account = load_account("account.json")
 if ARGV[0].nil? || ARGV[0].empty? then
   puts "Error: ARGV[0] is empty!"
   exit!
-end 
+end
 
 follow(account, ARGV[0])
