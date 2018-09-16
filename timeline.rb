@@ -56,6 +56,10 @@ class User
     @acct
   end
 
+  def icon
+    @avatar
+  end
+
   def reload
     uri = URI.parse("https://#{account["host"]}/api/v1/accounts/#{@id}")
 
@@ -179,7 +183,7 @@ class Toot
       reblog_parse(@reblog)
     end
 
-    print "#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
+    print "#{print_user_icon(@account.icon)}#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
 
     if !@spoiler_text.empty?
@@ -209,6 +213,10 @@ class Toot
         system("img2sixel #{img["preview_url"]}")
       end
     end
+  end
+
+  def print_user_icon(icon)
+    `curl -L -k -s #{icon} | img2sixel -w 50 -h 50`
   end
 
 
