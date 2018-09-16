@@ -13,7 +13,7 @@ class User
   def initialize(account)
     @id = account["id"]
     @username = account["username"]
-    @display_name = if account["display_name"].empty?
+    @display_name = if account["display_name"] == ""
       account["username"]
     else
       account["display_name"]
@@ -254,6 +254,52 @@ def load_account(file)
   return ac
 end
 
+def sse_parse(stream)
+  data = ""
+  name = nil
+
+  stream.split(/\r?\n/).each do |part|
+    /^data:(.+)$/.match(part) do |m|
+      data += m[1].strip
+      data += "\n"
+    end
+    /^event:(.+)$/.match(part) do |m|
+      name = m[1].strip
+    end
+  end
+
+  return {
+    event: name,
+    body: data.chomp!
+  }
+end
+
+def stream(account, tl, param, img)
+  uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{tl}")
+
+  buffer = ""
+
+  Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |https|
+    req = Net::HTTP::Get.new(uri)
+    req["Authorization"] = " Bearer " + account["token"]
+
+    https.request(req) do |res|
+      res.read_body do |chunk|
+        buffer += chunk
+        while index = buffer.index(/\r\n\r\n|\n\n/)
+          stream = buffer.slice!(0..index)
+          json = sse_parse(stream)
+          if json[:event] == "update"
+              ary = []
+              ary.push(JSON.parse(json[:body]))
+              print_timeline(ary, false, param, img, true)
+          end
+        end
+      end
+    end
+  end
+end
+
 def timeline_load(account, tl, param)
   uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
 
@@ -277,12 +323,14 @@ def timeline_load(account, tl, param)
   return JSON.parse(res.body)
 end
 
-def print_timeline(toots, rev, param, img)
+def print_timeline(toots, rev, param, img, stream)
   i = 0
   if rev
     toots.each{|toot|
-      if i > param["limit"].to_i - 1
-        exit 0
+      if !stream
+        if i > param["limit"].to_i - 1
+          exit 0
+        end
       end
       t = Toot.new(toot)
       t.print_toot
@@ -296,9 +344,11 @@ def print_timeline(toots, rev, param, img)
     _toots = []
 
     toots.each{|toot|
-      if i > param["limit"].to_i - 1
-        puts "break!"
-        break
+      if !stream
+        if i > param["limit"].to_i - 1
+          puts "break!"
+          break
+        end
       end
       _toots.unshift(toot)
       i += 1
@@ -379,5 +429,12 @@ end
 
 
 param.store("limit", "#{limit}")
-print_timeline(timeline_load(account, tl, param), rev, param, img)
 
+if stream
+  if tl == "home"
+    tl = "user"
+  end
+  stream(account, tl, param, img)
+else
+  print_timeline(timeline_load(account, tl, param), rev, param, img, false)
+end
