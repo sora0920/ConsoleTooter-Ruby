@@ -58,10 +58,10 @@ class User
 
   def reload
     uri = URI.parse("https://#{account["host"]}/api/v1/accounts/#{@id}")
-    
+
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
-    
+
     req = Net::HTTP::Get.new(uri.path)
     req["Authorization"] = " Bearer " + account["token"]
 
@@ -173,7 +173,7 @@ class Toot
         else
           ""
       end
-        
+
     if !@reblog.to_s.empty?
       print "\e[32mRT \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
       reblog_parse(@reblog)
@@ -184,7 +184,7 @@ class Toot
 
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
-      s.search('br').each do |br| 
+      s.search('br').each do |br|
         br.replace("\n")
       end
 
@@ -193,7 +193,7 @@ class Toot
     end
 
     t = Nokogiri::HTML.parse(@content,nil,"UTF-8")
-    t.search('br').each do |br| 
+    t.search('br').each do |br|
       br.replace("\n")
     end
 
@@ -214,10 +214,10 @@ class Toot
 
   def reload(account)
     uri = URI.parse("https://#{account["host"]}/api/v1/statuses/#{@id}")
-    
+
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
-    
+
     req = Net::HTTP::Get.new(uri.path)
     req["Authorization"] = " Bearer " + account["token"]
 
@@ -242,10 +242,10 @@ def load_account(file)
   end
 
   file_str = file_str.join("\n")
-  
+
   file.close
 
-  begin 
+  begin
     ac = JSON.parse(file_str)
   rescue
     puts "Parse Error"
@@ -266,16 +266,16 @@ def timeline_load(account, tl, param)
   req["Authorization"] = " Bearer " + account["token"]
 
   res = https.request(req)
-  
+
   if res.code != "200"
     puts res.code
     puts res.message
     puts res.body
   end
-  
-  
+
+
   return JSON.parse(res.body)
-end  
+end
 
 def print_timeline(toots, rev, param, img)
   i = 0
@@ -328,9 +328,9 @@ def listlist(account)
   lists = JSON.parse(res.body)
 
   puts "ID  Title\n\n"
-  lists.each{ |list| 
+  lists.each{ |list|
     li = list
-    puts "#{li["id"]}  #{li["title"]}"  
+    puts "#{li["id"]}  #{li["title"]}"
   }
   end
 
@@ -359,7 +359,7 @@ rev = false
 
 OptionParser.new do |opt|
   opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
-  opt.on('--local',           'Display local timeline'                     ) { 
+  opt.on('--local',           'Display local timeline'                     ) {
                                                                                 tl = "public"
                                                                                 param.store("local","1")
                                                                              }
@@ -368,12 +368,12 @@ OptionParser.new do |opt|
   opt.on('--onlymedia',       'Retrieve only posts that include media'     ) { param.store("only_media", "1") }
   opt.on('--list [ID]',       'Display list timeline'                      ) { |id| tl = "list/#{id}?" }
   opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'      ) { |lim| limit = lim }
-  opt.on('--lists',           'Retrieving lists'                           ) { 
-                                                                               listlist(account) 
+  opt.on('--lists',           'Retrieving lists'                           ) {
+                                                                               listlist(account)
                                                                                exit 0
                                                                              }
   opt.on('--rev',             'Inversion of order'                         ) { rev = true }
-  
+
   opt.parse!(ARGV)
 end
 
