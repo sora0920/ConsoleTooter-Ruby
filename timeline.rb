@@ -47,7 +47,6 @@ class User
     }
   end
 
-
   def name
     @display_name
   end
@@ -73,7 +72,6 @@ class User
 
     self.initialize(JSON.parse(res.body))
   end
-
 end
 
 class Toot
@@ -219,7 +217,6 @@ class Toot
     `curl -L -k -s #{icon} | img2sixel -w 50 -h 50`
   end
 
-
   def reload(account)
     uri = URI.parse("https://#{account["host"]}/api/v1/statuses/#{@id}")
 
@@ -234,7 +231,6 @@ class Toot
     self.initialize(JSON.parse(res.body))
   end
 end
-
 
 def load_account(file)
   begin
@@ -327,7 +323,6 @@ def timeline_load(account, tl, param)
     puts res.body
   end
 
-
   return JSON.parse(res.body)
 end
 
@@ -390,7 +385,7 @@ def listlist(account)
     li = list
     puts "#{li["id"]}  #{li["title"]}"
   }
-  end
+end
 
 def test_sixel
   if system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
@@ -409,6 +404,7 @@ end
 
 account = load_account("account.json")
 tl = "home"
+local = false
 limit = `tput lines`
 stream = false
 param = Hash.new
@@ -419,7 +415,7 @@ OptionParser.new do |opt|
   opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
   opt.on('--local',           'Display local timeline'                     ) {
                                                                                 tl = "public"
-                                                                                param.store("local","1")
+                                                                                local = true
                                                                              }
   opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
   opt.on('--stream',          'Start up in streaming mode'                 ) { stream = true }
@@ -442,7 +438,14 @@ if stream
   if tl == "home"
     tl = "user"
   end
+  
+  if local
+    tl = "public/local"
+  end
   stream(account, tl, param, img)
 else
+  if local
+    param.store("local","1")
+  end
   print_timeline(timeline_load(account, tl, param), rev, param, img, false)
 end
