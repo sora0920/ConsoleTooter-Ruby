@@ -405,7 +405,7 @@ end
 account = load_account("account.json")
 tl = "home"
 local = false
-limit = `tput lines`
+limit = 20
 stream = false
 param = Hash.new
 img = test_sixel
@@ -432,20 +432,23 @@ OptionParser.new do |opt|
 end
 
 
-param.store("limit", "#{limit}")
+
 
 if stream
   if tl == "home"
     tl = "user"
   end
-  
+
   if local
     tl = "public/local"
   end
+
   stream(account, tl, param, img)
 else
   if local
     param.store("local","1")
   end
+
+  param.store("limit", "#{limit}")
   print_timeline(timeline_load(account, tl, param), rev, param, img, false)
 end
