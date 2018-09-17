@@ -26,7 +26,7 @@ class User
     @statuses_count = account["statuses_count"]
     @note = account["note"]
     @url = account["url"]
-    @avatar = account["avatar"]
+    @avatar = account["avatar_static"]
     @header = account["header"]
     @moved = account["moved"]
   end
@@ -181,7 +181,7 @@ class Toot
       reblog_parse(@reblog)
     end
 
-    print "#{print_user_icon(@account.icon)}#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
+    print "#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
 
     if !@spoiler_text.empty?
@@ -213,8 +213,8 @@ class Toot
     end
   end
 
-  def print_user_icon(icon)
-    `curl -L -k -s #{icon} | img2sixel -w 50 -h 50`
+  def print_user_icon
+    `curl -L -k -s #{@account.icon} | img2sixel -w 50 -h 50`
   end
 
   def reload(account)
@@ -339,6 +339,9 @@ def print_timeline(toots, rev, param, img, stream)
         end
       end
       t = Toot.new(toot)
+      if img
+        print t.print_user_icon
+      end
       t.print_toot
       if img
         t.printimg
@@ -361,6 +364,9 @@ def print_timeline(toots, rev, param, img, stream)
     }
     _toots.each{|toot|
       t = Toot.new(toot)
+      if img
+        print t.print_user_icon
+      end
       t.print_toot
       if img
         t.printimg
@@ -423,7 +429,6 @@ OptionParser.new do |opt|
                                                                              }
   opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
   opt.on('--list [ID]',       'Display list timeline'                      ) {  |id|
-                                                                                #tl = "list/#{id}?"
                                                                                 tl = "list"
                                                                                 list_id = id
                                                                              }
