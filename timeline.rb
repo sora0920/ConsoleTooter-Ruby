@@ -281,6 +281,8 @@ end
 def stream(account, tl, param, img)
   uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{tl}")
 
+  uri.query = URI.encode_www_form(param)
+
   buffer = ""
 
   Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |https|
@@ -288,6 +290,7 @@ def stream(account, tl, param, img)
     req["Authorization"] = " Bearer " + account["token"]
 
     https.request(req) do |res|
+      puts "Connect: #{res.code}"
       res.read_body do |chunk|
         buffer += chunk
         while index = buffer.index(/\r\n\r\n|\n\n/)
@@ -405,6 +408,7 @@ end
 account = load_account("account.json")
 tl = "home"
 local = false
+list_id = 0
 limit = 20
 stream = false
 param = Hash.new
@@ -418,9 +422,13 @@ OptionParser.new do |opt|
                                                                                 local = true
                                                                              }
   opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
+  opt.on('--list [ID]',       'Display list timeline'                      ) {  |id|
+                                                                                #tl = "list/#{id}?"
+                                                                                tl = "list"
+                                                                                list_id = id
+                                                                             }
   opt.on('--stream',          'Start up in streaming mode'                 ) { stream = true }
   opt.on('--onlymedia',       'Retrieve only posts that include media'     ) { param.store("only_media", "1") }
-  opt.on('--list [ID]',       'Display list timeline'                      ) { |id| tl = "list/#{id}?" }
   opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'      ) { |lim| limit = lim }
   opt.on('--lists',           'Retrieving lists'                           ) {
                                                                                listlist(account)
@@ -443,10 +451,18 @@ if stream
     tl = "public/local"
   end
 
+  if tl == "list"
+    param.store("list", "#{list_id}")
+  end
+
   stream(account, tl, param, img)
 else
   if local
     param.store("local","1")
+  end
+
+  if tl == "list"
+    tl += "/#{list_id}?"
   end
 
   param.store("limit", "#{limit}")
