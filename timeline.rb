@@ -444,9 +444,6 @@ OptionParser.new do |opt|
   opt.parse!(ARGV)
 end
 
-
-
-
 if stream
   if tl == "home"
     tl = "user"
