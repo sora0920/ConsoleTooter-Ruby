@@ -460,7 +460,12 @@ if stream
     param.store("list", "#{list_id}")
   end
 
-  stream(account, tl, param, img)
+  begin
+    stream(account, tl, param, img)
+  rescue Interrupt
+    puts "\nBye👋"
+    exit 0
+  end
 else
   if local
     param.store("local","1")
