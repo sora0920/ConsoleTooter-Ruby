@@ -230,6 +230,28 @@ class Toot
   end
 end
 
+class Notification
+  def initialize(json)
+    @id = json["id"]
+    @type = json["type"]
+    @created_at = json["created_at"]
+    @account = User.new(json["account"])
+    @status = if !json["status"].empty?
+                Toot.new(json["status"])
+              else
+                ""
+              end
+  end
+
+  def print_notification
+    case @type
+    when "mention" then
+      print "\e[37;0;1m↩️ Reply "
+      @status.print_toot
+    end
+  end
+end
+
 def load_account(file)
   begin
     file = File.open(file, "a+")
@@ -289,15 +311,22 @@ def stream(account, tl, param, img)
 
     https.request(req) do |res|
       puts "Connect: #{res.code}"
+      if res.code != "200"
+        puts res.message
+        puts res.body
+      end
       res.read_body do |chunk|
         buffer += chunk
         while index = buffer.index(/\r\n\r\n|\n\n/)
           stream = buffer.slice!(0..index)
           json = sse_parse(stream)
           if json[:event] == "update"
-              ary = []
-              ary.push(JSON.parse(json[:body]))
-              print_timeline(ary, false, param, img, true)
+            ary = []
+            ary.push(JSON.parse(json[:body]))
+            print_timeline(ary, false, param, img, true)
+          elsif json[:event] == "notification"
+            n = Notification.new(JSON.parse(json[:body]))
+            n.print_notification
           end
         end
       end
@@ -459,6 +488,7 @@ if stream
     stream(account, tl, param, img)
   rescue Interrupt
     puts "\nBye👋"
+    print "\e[m"
     exit 0
   end
 else
@@ -472,4 +502,5 @@ else
 
   param.store("limit", "#{limit}")
   print_timeline(timeline_load(account, tl, param), rev, param, img, false)
+  print "\e[m" 
 end
