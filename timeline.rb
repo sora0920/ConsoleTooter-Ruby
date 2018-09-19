@@ -204,9 +204,7 @@ class Toot
   end
 
   def printimg
-    imgs = self.img
-
-    imgs.each do |img|
+    self.img.each do |img|
       if img["type"] == "image"
         system("img2sixel #{img["preview_url"]}")
       end
