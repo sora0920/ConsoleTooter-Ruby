@@ -245,8 +245,13 @@ class Notification
 
   def print_notification
     case @type
-    when "mention" then
-      print "\e[37;0;1m↩️ Reply "
+    when "reblog", "favourite", "mention" then
+      case @type
+      when "mention" then
+        print "\e[37;0;1m↩️ Reply "
+      when "favourite" then
+        print "\e[33;0;1m🌠 Favourite \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+      end
       @status.print_toot
     end
   end
