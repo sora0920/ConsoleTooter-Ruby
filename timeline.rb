@@ -236,7 +236,7 @@ class Notification
     @type = json["type"]
     @created_at = json["created_at"]
     @account = User.new(json["account"])
-    @status = if !json["status"].empty?
+    @status = if !json["status"].nil?
                 Toot.new(json["status"])
               else
                 ""
@@ -255,6 +255,8 @@ class Notification
         print "\e[37;0;1m🔄 Boost \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
       end
       @status.print_toot
+		when "follow" then
+			print "\e[37;0;1m📲 Follow \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
     end
   end
 end
