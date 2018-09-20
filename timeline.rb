@@ -467,6 +467,7 @@ OptionParser.new do |opt|
                                                                              }
   opt.on('--stream',          'Start up in streaming mode'                 ) { stream = true }
   opt.on('--onlymedia',       'Retrieve only posts that include media'     ) { param.store("only_media", "1") }
+  opt.on('--noimg',           'Disable to Image Display'                   ) { img = false }
   opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'      ) { |lim| limit = lim }
   opt.on('--lists',           'Retrieving lists'                           ) {
                                                                                listlist(account)
