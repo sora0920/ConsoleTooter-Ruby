@@ -433,18 +433,10 @@ def listlist(account)
 end
 
 def test_sixel
-  if system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
-    sixel_term = true
-  end
-  if system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg >& /dev/null")
-    sixel_com = true
-  end
+  sixel_term = system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
+  sixel_com = system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg >& /dev/null")
 
-  if sixel_term && sixel_com
-    return true
-  else
-    return false
-  end
+  return sixel_term && sixel_com
 end
 
 account = load_account("account.json")
