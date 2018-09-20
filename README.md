@@ -8,4 +8,6 @@ Rubyで作ったConsoleTooterだよぉ
 3. 通知の表示(ストリーミングしている場合のみ)
 4. フォロー(リモートフォロー、ローカルでのフォロー)
 # 下拵え
-1. account.jsonにhostとtokenをつっこむ
+1. account.jsonにhostとtokenをつっこむ   
+または
+1. 環境変数``CT_CONFIG_PATH``に任意のコンフィグファイルを指定する
