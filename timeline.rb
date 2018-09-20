@@ -14,10 +14,10 @@ class User
     @id = account["id"]
     @username = account["username"]
     @display_name = if account["display_name"] == ""
-      account["username"]
-    else
-      account["display_name"]
-    end
+                      account["username"]
+                    else
+                      account["display_name"]
+                    end
     @acct = account["acct"]
     @created_at = account["created_at"]
     @locked = account["locked"]
@@ -508,5 +508,5 @@ else
 
   param.store("limit", "#{limit}")
   print_timeline(timeline_load(account, tl, param), rev, param, img, false)
-  print "\e[m" 
+  print "\e[m"
 end
