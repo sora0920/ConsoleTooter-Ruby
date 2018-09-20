@@ -439,7 +439,12 @@ def test_sixel
   return sixel_term && sixel_com
 end
 
-account = load_account("account.json")
+config_path = if ENV["CT_CONFIG_PATH"].nil?
+                "account.json"
+              else
+                ENV["CT_CONFIG_PATH"]
+              end
+account = load_account(config_path)
 tl = "home"
 local = false
 list_id = 0
