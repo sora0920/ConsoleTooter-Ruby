@@ -212,7 +212,7 @@ class Toot
   end
 
   def print_user_icon
-    `curl -L -k -s #{@account.icon} | img2sixel -w 50 -h 50`
+    `curl -L -k -s #{@account.icon} | img2sixel -w 35 -h 35`
   end
 
   def reload(account)
@@ -453,6 +453,8 @@ stream = false
 param = Hash.new
 img = test_sixel
 rev = false
+
+flags = {stream:false, img:false, rev:false, safe:false}
 
 OptionParser.new do |opt|
   opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
