@@ -171,11 +171,11 @@ class Toot
         when "public" then
           ""
         when "unlisted" then
-          "🔓  "
+          "🔓 "
         when "private" then
-          "🔒  "
+          "🔒 "
         when "direct" then
-          "✉  "
+          "✉ "
         else
           ""
       end
@@ -217,7 +217,12 @@ class Toot
   end
 
   def print_user_icon
-    print `curl -L -k -s #{@account.icon} | img2sixel -w 32 -h 32`
+    icon = if self.reblog?
+             @reblog["account"]["avatar_static"]
+           else
+             @account.icon
+           end
+    print `curl -L -k -s #{icon} | img2sixel -w 32 -h 32`
     print "\x1b[2A\x1b[5C"
   end
 
