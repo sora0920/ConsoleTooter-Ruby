@@ -162,7 +162,11 @@ class Toot
     @media_attachments
   end
 
-  def print_toot
+  def reblog?
+    return !@reblog.to_s.empty?
+  end
+
+  def print_toot_info
     vi = case @visibility
         when "public" then
           ""
@@ -175,15 +179,16 @@ class Toot
         else
           ""
       end
-
-    if !@reblog.to_s.empty?
-      print "\e[32mRT \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
-      reblog_parse(@reblog)
-    end
-
     print "#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
+  end
 
+  def print_reblog
+    print "\e[32mRT \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+    reblog_parse(@reblog)
+  end
+
+  def print_toot_body
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
       s.search('br').each do |br|
@@ -212,7 +217,8 @@ class Toot
   end
 
   def print_user_icon
-    `curl -L -k -s #{@account.icon} | img2sixel -w 35 -h 35`
+    print `curl -L -k -s #{@account.icon} | img2sixel -w 32 -h 32`
+    print "\x1b[2A\x1b[5C"
   end
 
   def reload(account)
@@ -376,9 +382,19 @@ def print_timeline(toots, rev, param, img, stream)
       end
       t = Toot.new(toot)
       if img
-        print t.print_user_icon
+        t.print_user_icon
       end
-      t.print_toot
+      if t.reblog?
+        t.print_reblog
+        if img
+          print "\x1b[5C"
+        end
+      end
+      t.print_toot_info
+      if img
+        print "\x1b[5C"
+      end
+      t.print_toot_body
       if img
         t.printimg
         puts "\n"
@@ -401,9 +417,19 @@ def print_timeline(toots, rev, param, img, stream)
     _toots.each{|toot|
       t = Toot.new(toot)
       if img
-        print t.print_user_icon
+        t.print_user_icon
       end
-      t.print_toot
+      if t.reblog?
+        t.print_reblog
+        if img
+          print "\x1b[5C"
+        end
+      end
+      t.print_toot_info
+      if img
+        print "\x1b[5C"
+      end
+      t.print_toot_body
       if img
         t.printimg
         puts "\n"
