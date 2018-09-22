@@ -113,7 +113,7 @@ class Toot
       @media_attachments = {}
     end
     if !@spoiler_text.empty?
-      @content = "<p>🔞Can't Display to This Content for Safe Mode.🔞</p>"
+      @content = "<p>🔞In Safe Mode, This Content Can't be Displayd.🔞</p>"
     end
   end
 
@@ -431,23 +431,23 @@ safe = false
 flags = {stream:false, img:false, rev:false, safe:false}
 
 OptionParser.new do |opt|
-  opt.on('--home',            'Display home timeline'                          ) { tl = "home" }
-  opt.on('--local',           'Display local timeline'                         ) { tl = "local" }
-  opt.on('--public',          'Display public timeline'                        ) { tl = "public" }
-  opt.on('--list [ID]',       'Display list timeline'                          ) {  |id|
-                                                                                    tl = "list"
-                                                                                    list_id = id
-                                                                                 }
-  opt.on('--stream',          'Start up in streaming mode'                     ) { stream = true }
-  opt.on('--onlymedia',       'Retrieve only posts that include media'         ) { param.store("only_media", "1") }
-  opt.on('--noimg',           'Hiding Image'                                   ) { img = false }
-  opt.on('--safe',            'Do not Display Sensitive Images and CW Contents') { safe = true }
-  opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'          ) { |lim| limit = lim }
-  opt.on('--lists',           'Retrieving lists'                               ) {
-                                                                                   listlist(account)
-                                                                                   exit 0
-                                                                                 }
-  opt.on('--rev',             'Inversion of order'                             ) { rev = true }
+  opt.on('--home',            'Get the home timeline'                                 ) { tl = "home" }
+  opt.on('--local',           'Get the local timeline'                                ) { tl = "local" }
+  opt.on('--public',          'Get the public timeline'                               ) { tl = "public" }
+  opt.on('--list [ID]',       'Get the list timeline'                                 ) {  |id|
+                                                                                           tl = "list"
+                                                                                           list_id = id
+                                                                                        }
+  opt.on('--stream',          'Use streaming'                                         ) { stream = true }
+  opt.on('--onlymedia',       'Get posts only included images'                        ) { param.store("only_media", "1") }
+  opt.on('--noimg',           "Don't be displayd image"                               ) { img = false }
+  opt.on('--safe',            "Don't be displayd NSFW images and CW contents"         ) { safe = true }
+  opt.on('--limit [1-40]',    "Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
+  opt.on('--lists',           'Get your lists'                                        ) {
+                                                                                           listlist(account)
+                                                                                           exit 0
+                                                                                        }
+  opt.on('--rev',             "Reverse the output (Don't work, if using streaming)"   ) { rev = true }
 
   opt.parse!(ARGV)
 end
