@@ -42,20 +42,6 @@ class User
   def icon
     @avatar
   end
-
-  def reload
-    uri = URI.parse("https://#{account["host"]}/api/v1/accounts/#{@id}")
-
-    https = Net::HTTP.new(uri.host, uri.port)
-    https.use_ssl = true
-
-    req = Net::HTTP::Get.new(uri.path)
-    req["Authorization"] = " Bearer " + account["token"]
-
-    res = https.request(req)
-
-    self.initialize(JSON.parse(res.body))
-  end
 end
 
 class Toot
@@ -180,20 +166,6 @@ class Toot
            end
     print `curl -L -k -s #{icon} | img2sixel -w 32 -h 32`
     print "\x1b[2A\x1b[5C"
-  end
-
-  def reload(account)
-    uri = URI.parse("https://#{account["host"]}/api/v1/statuses/#{@id}")
-
-    https = Net::HTTP.new(uri.host, uri.port)
-    https.use_ssl = true
-
-    req = Net::HTTP::Get.new(uri.path)
-    req["Authorization"] = " Bearer " + account["token"]
-
-    res = https.request(req)
-
-    self.initialize(JSON.parse(res.body))
   end
 end
 
