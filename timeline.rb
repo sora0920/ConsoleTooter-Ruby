@@ -266,8 +266,8 @@ class Notification
         print "\e[37;0;1m🔄 Boost \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
       end
       @status.print_toot
-		when "follow" then
-			print "\e[37;0;1m📲 Follow \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+    when "follow" then
+      print "\e[37;0;1m📲 Follow \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
     end
   end
 end
@@ -512,16 +512,15 @@ OptionParser.new do |opt|
 end
 
 if stream
-  if tl == "home"
+  case tl
+  when "home" then
     tl = "user"
+  when "list" then
+    param.store("list", "#{list_id}")
   end
 
   if local
     tl = "public/local"
-  end
-
-  if tl == "list"
-    param.store("list", "#{list_id}")
   end
 
   begin
