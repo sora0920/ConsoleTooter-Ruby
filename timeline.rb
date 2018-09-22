@@ -108,6 +108,15 @@ class Toot
     return !@reblog.to_s.empty?
   end
 
+  def to_safe
+    if @sensitive
+      @media_attachments = {}
+    end
+    if !@spoiler_text.empty?
+      @content = "<p>🔞Can't Display to This Content for Safe Mode.🔞</p>"
+    end
+  end
+
   def print_toot_info
     vi = case @visibility
         when "public" then
@@ -246,7 +255,7 @@ def sse_parse(stream)
   }
 end
 
-def stream(account, tl, param, img)
+def stream(account, tl, param, img, safe)
   uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{tl}")
 
   uri.query = URI.encode_www_form(param)
@@ -271,7 +280,7 @@ def stream(account, tl, param, img)
           if json[:event] == "update"
             ary = []
             ary.push(JSON.parse(json[:body]))
-            print_timeline(ary, false, param, img, true)
+            print_timeline(ary, false, param, img, true, safe)
           elsif json[:event] == "notification"
             n = Notification.new(JSON.parse(json[:body]))
             n.print_notification
@@ -304,7 +313,7 @@ def timeline_load(account, tl, param)
   return JSON.parse(res.body)
 end
 
-def print_timeline(toots, rev, param, img, stream)
+def print_timeline(toots, rev, param, img, stream, safe)
   i = 0
   if rev
     toots.each{|toot|
@@ -314,6 +323,9 @@ def print_timeline(toots, rev, param, img, stream)
         end
       end
       t = Toot.new(toot)
+      if safe
+        t.to_safe
+      end
       if img
         t.print_user_icon
       end
@@ -349,6 +361,9 @@ def print_timeline(toots, rev, param, img, stream)
     }
     _toots.each{|toot|
       t = Toot.new(toot)
+      if safe
+        t.to_safe
+      end
       if img
         t.print_user_icon
       end
@@ -411,26 +426,28 @@ stream = false
 param = Hash.new
 img = test_sixel
 rev = false
+safe = false
 
 flags = {stream:false, img:false, rev:false, safe:false}
 
 OptionParser.new do |opt|
-  opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
-  opt.on('--local',           'Display local timeline'                     ) { tl = "local" }
-  opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
-  opt.on('--list [ID]',       'Display list timeline'                      ) {  |id|
-                                                                                tl = "list"
-                                                                                list_id = id
-                                                                             }
-  opt.on('--stream',          'Start up in streaming mode'                 ) { stream = true }
-  opt.on('--onlymedia',       'Retrieve only posts that include media'     ) { param.store("only_media", "1") }
-  opt.on('--noimg',           'Disable to Image Display'                   ) { img = false }
-  opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'      ) { |lim| limit = lim }
-  opt.on('--lists',           'Retrieving lists'                           ) {
-                                                                               listlist(account)
-                                                                               exit 0
-                                                                             }
-  opt.on('--rev',             'Inversion of order'                         ) { rev = true }
+  opt.on('--home',            'Display home timeline'                          ) { tl = "home" }
+  opt.on('--local',           'Display local timeline'                         ) { tl = "local" }
+  opt.on('--public',          'Display public timeline'                        ) { tl = "public" }
+  opt.on('--list [ID]',       'Display list timeline'                          ) {  |id|
+                                                                                    tl = "list"
+                                                                                    list_id = id
+                                                                                 }
+  opt.on('--stream',          'Start up in streaming mode'                     ) { stream = true }
+  opt.on('--onlymedia',       'Retrieve only posts that include media'         ) { param.store("only_media", "1") }
+  opt.on('--noimg',           'Hiding Image'                                   ) { img = false }
+  opt.on('--safe',            'Do not Display Sensitive Images and CW Contents') { safe = true }
+  opt.on('--limit [1-40]',    'Specify the number of Toot to acquire'          ) { |lim| limit = lim }
+  opt.on('--lists',           'Retrieving lists'                               ) {
+                                                                                   listlist(account)
+                                                                                   exit 0
+                                                                                 }
+  opt.on('--rev',             'Inversion of order'                             ) { rev = true }
 
   opt.parse!(ARGV)
 end
@@ -446,7 +463,7 @@ if stream
   end
 
   begin
-    stream(account, tl, param, img)
+    stream(account, tl, param, img, safe)
   rescue Interrupt
     puts "\nBye👋"
     print "\e[m"
@@ -462,6 +479,6 @@ else
   end
 
   param.store("limit", "#{limit}")
-  print_timeline(timeline_load(account, tl, param), rev, param, img, false)
+  print_timeline(timeline_load(account, tl, param), rev, param, img, false, safe)
   print "\e[m"
 end
