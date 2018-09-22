@@ -31,22 +31,6 @@ class User
     @moved = account["moved"]
   end
 
-  def get
-    {
-      "acct": @acct,
-      "display_name": @display_name,
-      "locked": @locked,
-      "followers_count": @followers_count,
-      "following_count": @following_count,
-      "statuses_count": @statuses_count,
-      "note": @note,
-      "url": @url,
-      "avatar": @avatar,
-      "header": @header,
-      "moved": @moved
-    }
-  end
-
   def name
     @display_name
   end
@@ -128,34 +112,6 @@ class Toot
     @application = toot["application"]
     @language = toot["language"]
     @pinned = toot["pinned"]
-  end
-
-  def get
-    {
-      "id": @id,
-      "url": @url,
-      "account": @account,
-      "in_reply_to_id": @in_reply_to_id,
-      "in_reply_to_account_id": @in_reply_to_account_id,
-      "reblog": @reblog,
-      "content": @content,
-      "created_at": @created_at,
-      "emojis": @emojis,
-      "reblogs_count": @reblogs_count,
-      "favourites_count": @favourites_count,
-      "reblogged": @reblogged,
-      "favourited": @favourited,
-      "muted": @muted,
-      "sensitive": @sensitive,
-      "spoiler_text": @spoiler_text,
-      "visibility": @visibility,
-      "media_attachments": @media_attachments,
-      "mentions": @mentions,
-      "tags": @tags,
-      "application": @application,
-      "language": @language,
-      "pinned": @pinned
-    }
   end
 
   def img
@@ -477,7 +433,6 @@ config_path = if ENV["CT_CONFIG_PATH"].nil?
               end
 account = load_account(config_path)
 tl = "home"
-local = false
 list_id = 0
 limit = 20
 stream = false
