@@ -20,10 +20,10 @@ def load_account(file)
   end
 
   file_str = file_str.join("\n")
-  
+
   file.close
 
-  begin 
+  begin
     ac = JSON.parse(file_str)
   rescue
     puts "Parse Error"
@@ -73,7 +73,7 @@ def postmedia(account, filename)
   https.use_ssl = true
 
   req = Net::HTTP::Post.new(uri.request_uri)
-  
+
   data = [ ["file", file.read , { filename: File.basename(filename), content_type: MIME::Types.type_for(filename)[0].to_s }] ]
 
   req["Authorization"] = " Bearer " + account["token"]
@@ -97,7 +97,7 @@ def postmedia(account, filename)
 end
 
 
-def to_suddenly_death(toot) 
+def to_suddenly_death(toot)
   if system("echo-sd TEST! >& /dev/null")
     str = `echo-sd #{toot}`
     return str
@@ -116,16 +116,16 @@ sen = false
 sd = false
 
 OptionParser.new do |opt|
-  opt.on('--pb',              'Specify visibility as public'                      ) { vis = "public" }
-  opt.on('--ul',              'Specify visibility as unlisted'                    ) { vis = "unlisted" }
-  opt.on('--pv',              'Specify visibility as private'                     ) { vis = "private" }
-  opt.on('--di',              'Specify visibility as direct'                      ) { vis = "direct" }
-  opt.on('--cw [TEXT]',       'Use CW. Please Input CW Text for After this option') { |cw| cw = "#{cw}" }
-  opt.on('--re [Reply to ID]','Post as a reply'                                   ) { |re| reply_id = "#{re.to_i}"}
-  opt.on('--media [path]',    'Post with images'                                  ) { |media| media_id.push(postmedia(account, media))}
-  opt.on('--nsfw',            'Give an NSFW flag if there is an image'            ) { sen = true }
-  opt.on('--sd',               'It will be like "totsuzen no shi"'                ) { sd = true }
-  
+  opt.on('--public',             'Set visibility to public'  ) { vis = "public" }
+  opt.on('--unlisted',           'Set visibility to unlisted') { vis = "unlisted" }
+  opt.on('--private',            'Set visibility to private' ) { vis = "private" }
+  opt.on('--direct',             'Set visibility to direct'  ) { vis = "direct" }
+  opt.on('--cw [TEXT]',          'Set CW TEXT=warning text'  ) { |cw| cw = "#{cw}" }
+  opt.on('--reply [Reply to ID]','Post reply'                ) { |re| reply_id = "#{re.to_i}"}
+  opt.on('--media [path]',       'Post with images'          ) { |media| media_id.push(postmedia(account, media))}
+  opt.on('--nsfw',               'Set NSFW flag'             ) { sen = true }
+  opt.on('--sd',                 'To "totsuzen no shi"'      ) { sd = true }
+
   opt.parse!(ARGV)
 end
 
@@ -133,7 +133,7 @@ end
 if ARGV[0].nil? || ARGV[0].empty? then
   puts "Error: ARGV[0] is empty!"
   exit!
-end 
+end
 
 if sd
   body = to_suddenly_death(ARGV[0])
