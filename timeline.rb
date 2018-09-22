@@ -465,7 +465,7 @@ end
 
 def test_sixel
   sixel_term = system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
-  sixel_com = system("img2sixel https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg >& /dev/null")
+  sixel_com = system("which img2sixel >& /dev/null")
 
   return sixel_term && sixel_com
 end
