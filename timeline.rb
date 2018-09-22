@@ -489,10 +489,7 @@ flags = {stream:false, img:false, rev:false, safe:false}
 
 OptionParser.new do |opt|
   opt.on('--home',            'Display home timeline'                      ) { tl = "home" }
-  opt.on('--local',           'Display local timeline'                     ) {
-                                                                                tl = "public"
-                                                                                local = true
-                                                                             }
+  opt.on('--local',           'Display local timeline'                     ) { tl = "local" }
   opt.on('--public',          'Display public timeline'                    ) { tl = "public" }
   opt.on('--list [ID]',       'Display list timeline'                      ) {  |id|
                                                                                 tl = "list"
@@ -517,9 +514,7 @@ if stream
     tl = "user"
   when "list" then
     param.store("list", "#{list_id}")
-  end
-
-  if local
+  when "local" then
     tl = "public/local"
   end
 
@@ -531,11 +526,11 @@ if stream
     exit 0
   end
 else
-  if local
+  case tl
+  when "local" then
+    tl = "public"
     param.store("local","1")
-  end
-
-  if tl == "list"
+  when "list" then
     tl += "/#{list_id}?"
   end
 
