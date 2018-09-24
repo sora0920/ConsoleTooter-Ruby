@@ -322,87 +322,44 @@ end
 
 def print_timeline(toots, rev, param, img, stream, safe)
   i = 0
-  if rev
-    toots.each{|toot|
-      if !stream
-        if i > param["limit"].to_i - 1
-          exit 0
-        end
-      end
-      t = Toot.new(toot)
-      if safe
-        t.to_safe
-      end
-      if t.reblog?
-        t.reblog_parse
-      end
-      if img
-        t.print_user_icon("32", false)
-      end
+  if !rev
+    _toots = toots
+    toots = []
 
-      t.print_toot_info
-      if img
-        print "\x1b[5C"
-      end
-      t.print_toot_body
-      if t.reblog?
-        print "\x1b[5C"
-        t.print_reblog
-        print "\n\n"
-        if t.images?
-          puts ""
-        end
-      end
-      if img
-        t.printimg
-        puts "\n"
-      end
-      i += 1
-    }
-  else
-    _toots = []
-
-    toots.each{|toot|
-      if !stream
-        if i > param["limit"].to_i - 1
-          puts "break!"
-          break
-        end
-      end
-      _toots.unshift(toot)
-      i += 1
-    }
     _toots.each{|toot|
-      t = Toot.new(toot)
-      if safe
-        t.to_safe
-      end
-      if t.reblog?
-        t.reblog_parse
-      end
-      if img
-        t.print_user_icon("32", false)
-      end
-
-      t.print_toot_info
-      if img
-        print "\x1b[5C"
-      end
-      t.print_toot_body
-      if t.reblog?
-        print "\x1b[5C"
-        t.print_reblog
-        print "\n\n"
-        if t.images?
-          puts ""
-        end
-      end
-      if img
-        t.printimg
-        puts "\n"
-      end
+      toots.unshift(toot)
     }
   end
+    toots.each{|toot|
+      t = Toot.new(toot)
+      if safe
+        t.to_safe
+      end
+      if t.reblog?
+        t.reblog_parse
+      end
+      if img
+        t.print_user_icon("32", false)
+      end
+
+      t.print_toot_info
+      if img
+        print "\x1b[5C"
+      end
+      t.print_toot_body
+      if t.reblog?
+        print "\x1b[5C"
+        t.print_reblog
+        print "\n\n"
+        if t.images?
+          puts ""
+        end
+      end
+      if img
+        t.printimg
+        puts "\n"
+      end
+    }
 end
 
 def listlist(account)
