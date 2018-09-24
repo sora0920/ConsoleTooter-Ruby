@@ -70,7 +70,7 @@ class Toot
     @language = toot["language"]
     @pinned = toot["pinned"]
     if !toot["reblog"].to_s.empty?
-      @rebloger_icon = toot["account"]["avatar_static"]
+      @rebloger = User.new(toot["account"])
     end
   end
 
@@ -146,6 +146,10 @@ class Toot
     print_user_icon("32", true)
   end
 
+  def print_reblog_no_sixel
+    print "\e[32mRT \e[33m#{@rebloger.name}\e[32m @#{@rebloger.acct} \n"
+  end
+
   def print_toot_body
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
@@ -176,7 +180,7 @@ class Toot
 
   def print_user_icon(size, reblog)
     icon = if reblog
-             @rebloger_icon
+             @rebloger.icon
            else
              @account.icon
            end
@@ -321,7 +325,6 @@ def timeline_load(account, tl, param)
 end
 
 def print_timeline(toots, rev, param, img, stream, safe)
-  i = 0
   if !rev
     _toots = toots
     toots = []
@@ -348,11 +351,16 @@ def print_timeline(toots, rev, param, img, stream, safe)
       end
       t.print_toot_body
       if t.reblog?
-        print "\x1b[5C"
-        t.print_reblog
-        print "\n\n"
-        if t.images?
-          puts ""
+        if img
+          print "\x1b[5C"
+          t.print_reblog
+          print "\n\n"
+          if t.images?
+            puts ""
+          end
+        else
+          t.print_reblog_no_sixel
+          print "\n\n"
         end
       end
       if img
