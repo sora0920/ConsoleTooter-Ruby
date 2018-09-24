@@ -167,13 +167,13 @@ class Toot
     end
   end
 
-  def print_user_icon
+  def print_user_icon(size)
     icon = if self.reblog?
              @reblog["account"]["avatar_static"]
            else
              @account.icon
            end
-    print `curl -L -k -s #{icon} | img2sixel -w 32 -h 32`
+    print `curl -L -k -s #{icon} | img2sixel -w #{size} -h #{size}`
     print "\x1b[2A\x1b[5C"
   end
 end
@@ -327,7 +327,7 @@ def print_timeline(toots, rev, param, img, stream, safe)
         t.to_safe
       end
       if img
-        t.print_user_icon
+        t.print_user_icon("32")
       end
       if t.reblog?
         t.print_reblog
@@ -365,7 +365,7 @@ def print_timeline(toots, rev, param, img, stream, safe)
         t.to_safe
       end
       if img
-        t.print_user_icon
+        t.print_user_icon("32")
       end
       if t.reblog?
         t.print_reblog
