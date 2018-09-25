@@ -29,10 +29,15 @@ class User
     @avatar = account["avatar_static"]
     @header = account["header"]
     @moved = account["moved"]
+    @emojis = account["emojis"]
   end
 
   def name
     @display_name
+  end
+
+  def name_overwrite(name)
+    @display_name = name
   end
 
   def acct
@@ -41,6 +46,14 @@ class User
 
   def icon
     @avatar
+  end
+
+  def emojis
+    @emojis
+  end
+
+  def emojis?
+    return !@emojis.nil?
   end
 end
 
@@ -115,12 +128,37 @@ class Toot
     return @media_attachments.length >= 1
   end
 
+  def emojis?
+    return !@emojis.nil?
+  end
+
+  def emojis
+    @emojis
+  end
+
   def to_safe
     if @sensitive
       @media_attachments = {}
     end
     if !@spoiler_text.empty?
       @content = "<p>🔞In Safe Mode, This Content Can't be Displayd.🔞</p>"
+    end
+  end
+
+  def shortcode2emoji
+    if @account.emojis?
+      @account.emojis.each{ |emoji|
+        code = Regexp.new(":#{emoji["shortcode"]}:")
+        @account.name_overwrite(@account.name.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C"))
+      }
+    end
+
+    if self.emojis?
+      @emojis.each{ |emoji|
+        code = Regexp.new(":#{emoji["shortcode"]}:")
+        @spoiler_text = @spoiler_text.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
+        @content = @content.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
+      }
     end
   end
 
@@ -150,24 +188,33 @@ class Toot
     print "\e[32mRT \e[33m#{@rebloger.name}\e[32m @#{@rebloger.acct} \n"
   end
 
-  def print_toot_body
+  def parse_toot_body
     if !@spoiler_text.empty?
       s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
       s.search('br').each do |br|
         br.replace("\n")
       end
 
-      puts s.text
-      puts "\n"
+      @spoiler_text = s.text
     end
 
     t = Nokogiri::HTML.parse(@content,nil,"UTF-8")
+
     t.search('br').each do |br|
       br.replace("\n")
     end
 
-    puts t.text
-    puts "\n"
+    @content = t.text
+  end
+
+  def print_toot_body
+    if !@spoiler_text.empty?
+      print "#{@spoiler_text}"
+      puts "\n"
+    end
+
+    print "#{@content}"
+    puts "\n\n"
   end
 
   def printimg
@@ -343,6 +390,8 @@ def print_timeline(toots, rev, param, img, stream, safe)
       end
       if img
         t.print_user_icon("32", false)
+        t.parse_toot_body
+        t.shortcode2emoji
       end
 
       t.print_toot_info
