@@ -98,7 +98,7 @@ end
 
 
 def to_suddenly_death(toot)
-  if system("echo-sd TEST! >& /dev/null")
+  if system("which echo-sd >& /dev/null")
     str = `echo-sd #{toot}`
     return str
   else
