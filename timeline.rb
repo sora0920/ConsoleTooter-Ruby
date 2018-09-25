@@ -404,7 +404,7 @@ config_path = if ENV["CT_CONFIG_PATH"].nil?
               end
 account = load_account(config_path)
 tl = "home"
-list_id = 0
+tl_id = nil
 limit = 20
 stream = false
 param = Hash.new
@@ -415,23 +415,27 @@ safe = false
 flags = {stream:false, img:false, rev:false, safe:false}
 
 OptionParser.new do |opt|
-  opt.on('--home',        'Get the home timeline'                                 ) { tl = "home" }
-  opt.on('--local',       'Get the local timeline'                                ) { tl = "local" }
-  opt.on('--public',      'Get the public timeline'                               ) { tl = "public" }
-  opt.on('--list [ID]',   'Get the list timeline'                                 ) {  |id|
-                                                                                       tl = "list"
-                                                                                       list_id = id
-                                                                                    }
-  opt.on('--stream',      'Use streaming'                                         ) { stream = true }
-  opt.on('--onlymedia',   'Get posts only included images'                        ) { param.store("only_media", "1") }
-  opt.on('--noimg',       "Don't be displayd image"                               ) { img = false }
-  opt.on('--safe',        "Don't be displayd NSFW images and CW contents"         ) { safe = true }
-  opt.on('--limit [1-40]',"Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
-  opt.on('--lists',       'Get your lists'                                        ) {
-                                                                                       listlist(account)
-                                                                                       exit 0
-                                                                                    }
-  opt.on('--rev',         "Reverse the output (Don't work, if using streaming)"   ) { rev = true }
+  opt.on('--home',          'Get the home timeline'                                 ) { tl = "home" }
+  opt.on('--local',         'Get the local timeline'                                ) { tl = "local" }
+  opt.on('--public',        'Get the public timeline'                               ) { tl = "public" }
+  opt.on('--list [ID]',     'Get the list timeline'                                 ) { |id|
+                                                                                         tl = "list"
+                                                                                         tl_id = id
+                                                                                      }
+  opt.on('--hashtag [tag]', 'Get the hashtag timeline'                              ) { |tag|
+                                                                                         tl = "hashtag"
+                                                                                         tl_id = tag
+                                                                                      }
+  opt.on('--stream',        'Use streaming'                                         ) { stream = true }
+  opt.on('--onlymedia',     'Get posts only included images'                        ) { param.store("only_media", "1") }
+  opt.on('--noimg',         "Don't be displayd image"                               ) { img = false }
+  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { safe = true }
+  opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
+  opt.on('--lists',         'Get your lists'                                        ) {
+                                                                                         listlist(account)
+                                                                                         exit 0
+                                                                                      }
+  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { rev = true }
 
   opt.parse!(ARGV)
 end
@@ -440,10 +444,12 @@ if stream
   case tl
   when "home" then
     tl = "user"
-  when "list" then
-    param.store("list", "#{list_id}")
   when "local" then
     tl = "public/local"
+  when "list" then
+    param.store("list", "#{tl_id}")
+  when "hashtag" then
+    param.store("tag", "#{tl_id}")
   end
 
   begin
@@ -459,7 +465,9 @@ else
     tl = "public"
     param.store("local","1")
   when "list" then
-    tl += "/#{list_id}?"
+    tl += "/#{tl_id}?"
+  when "hashtag" then
+    tl = "tag/#{tl_id}?"
   end
 
   param.store("limit", "#{limit}")
