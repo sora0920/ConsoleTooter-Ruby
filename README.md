@@ -44,3 +44,7 @@ CLIでMastodonできるやつ
 または
 
 - 環境変数``CT_CONFIG_PATH``に任意のコンフィグファイルを指定する
+
+# Usage
+
+```command --help```
