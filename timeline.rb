@@ -36,7 +36,7 @@ class User
     @display_name
   end
 
-  def name_overwrite(name)
+  def name=(name)
     @display_name = name
   end
 
@@ -149,7 +149,7 @@ class Toot
     if @account.emojis?
       @account.emojis.each{ |emoji|
         code = Regexp.new(":#{emoji["shortcode"]}:")
-        @account.name_overwrite(@account.name.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C"))
+        @account.name =  @account.name.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
       }
     end
 
