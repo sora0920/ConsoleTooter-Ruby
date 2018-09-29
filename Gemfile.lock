@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    curses (1.2.4)
     mime-types (3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
@@ -13,9 +14,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  curses
   mime-types
   ncurses-ruby
   nokogiri
 
 BUNDLED WITH
-   1.16.1
+   1.16.5
