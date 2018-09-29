@@ -388,9 +388,9 @@ def print_timeline(toots, rev, param, img, stream, safe)
       if t.reblog?
         t.reblog_parse
       end
+        t.parse_toot_body
       if img
         t.print_user_icon("32", false)
-        t.parse_toot_body
         t.shortcode2emoji
       end
 
