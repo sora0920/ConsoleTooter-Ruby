@@ -107,7 +107,12 @@ def to_suddenly_death(toot)
   end
 end
 
-account = load_account("account.json")
+config_path = if ENV["CT_CONFIG_PATH"].nil?
+                "account.json"
+              else
+                ENV["CT_CONFIG_PATH"]
+              end
+account = load_account(config_path)
 vis = "public"
 cw = ""
 reply_id = ""
