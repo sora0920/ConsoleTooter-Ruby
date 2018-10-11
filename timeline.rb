@@ -10,6 +10,9 @@ require "optparse"
 require "time"
 
 class User
+  attr_reader :acct, :emojis, :display_name, :avatar
+  attr_writer :display_name
+
   def initialize(account)
     @id = account["id"]
     @username = account["username"]
@@ -32,32 +35,14 @@ class User
     @emojis = account["emojis"]
   end
 
-  def name
-    @display_name
-  end
-
-  def name=(name)
-    @display_name = name
-  end
-
-  def acct
-    @acct
-  end
-
-  def icon
-    @avatar
-  end
-
-  def emojis
-    @emojis
-  end
-
   def emojis?
     return !@emojis.nil?
   end
 end
 
 class Toot
+  attr_reader :id, :emojis
+
   def initialize(toot)
     @id = toot["id"]
     @url = toot["url"]
@@ -87,10 +72,6 @@ class Toot
     end
   end
 
-  def id
-    @id
-  end
-
   def reblog_parse
     @id = @reblog["id"]
     @url = @reblog["url"]
@@ -116,10 +97,6 @@ class Toot
     @pinned = @reblog["pinned"]
   end
 
-  def img
-    @media_attachments
-  end
-
   def reblog?
     return !@reblog.to_s.empty?
   end
@@ -130,10 +107,6 @@ class Toot
 
   def emojis?
     return !@emojis.nil?
-  end
-
-  def emojis
-    @emojis
   end
 
   def to_safe
@@ -149,7 +122,7 @@ class Toot
     if @account.emojis?
       @account.emojis.each{ |emoji|
         code = Regexp.new(":#{emoji["shortcode"]}:")
-        @account.name =  @account.name.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
+        @account.display_name =  @account.display_name.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
       }
     end
 
@@ -175,7 +148,7 @@ class Toot
         else
           ""
       end
-    print "#{vi}\e[33m#{@account.name}\e[32m @#{@account.acct} "
+    print "#{vi}\e[33m#{@account.display_name}\e[32m @#{@account.acct} "
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
   end
 
@@ -185,7 +158,7 @@ class Toot
   end
 
   def print_reblog_no_sixel
-    print "\e[32mRT \e[33m#{@rebloger.name}\e[32m @#{@rebloger.acct} \n"
+    print "\e[32mRT \e[33m#{@rebloger.display_name}\e[32m @#{@rebloger.acct} \n"
   end
 
   def parse_toot_body
@@ -218,7 +191,7 @@ class Toot
   end
 
   def printimg
-    self.img.each do |img|
+    @media_attachments.each do |img|
       if img["type"] == "image"
         system("img2sixel #{img["preview_url"]}")
       end
@@ -227,9 +200,9 @@ class Toot
 
   def print_user_icon(size, reblog)
     icon = if reblog
-             @rebloger.icon
+             @rebloger.avatar
            else
-             @account.icon
+             @account.avatar
            end
     print `curl -L -k -s #{icon} | img2sixel -w #{size} -h #{size}`
     print "\x1b[2A\x1b[5C"
@@ -256,13 +229,13 @@ class Notification
       when "mention" then
         print "\e[37;0;1m↩️  Reply "
       when "favourite" then
-        print "\e[37;0;1m🌠 Favourite \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+        print "\e[37;0;1m🌠 Favourite \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
       when "reblog" then
-        print "\e[37;0;1m🔄 Boost \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+        print "\e[37;0;1m🔄 Boost \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
       end
       @status.print_toot
     when "follow" then
-      print "\e[37;0;1m📲 Follow \e[33m#{@account.name}\e[32m @#{@account.acct} \n"
+      print "\e[37;0;1m📲 Follow \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
     end
   end
 end
@@ -440,7 +413,11 @@ def listlist(account)
 end
 
 def test_sixel
-  sixel_term = system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
+  begin
+    sixel_term = system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
+  rescue
+    sixel_term = true
+  end
   sixel_com = system("which img2sixel >& /dev/null")
 
   return sixel_term && sixel_com
@@ -461,7 +438,7 @@ img = test_sixel
 rev = false
 safe = false
 
-flags = {stream:false, img:false, rev:false, safe:false}
+#flags = {stream:false, img:false, rev:false, safe:false}
 
 OptionParser.new do |opt|
   opt.on('--home',          'Get the home timeline'                                 ) { tl = "home" }
