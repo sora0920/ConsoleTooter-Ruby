@@ -413,12 +413,12 @@ def listlist(account)
 end
 
 def test_sixel
-  begin
+  if system("ls -la /bin/sh | grep bash > /dev/null 2>&1")
     sixel_term = system('stty -echo; echo -en "\e[c"; read -d c da1 <&1; stty echo; echo -E "${da1#*\?}" | grep "4;" >& /dev/null')
-  rescue
+  else
     sixel_term = true
   end
-  sixel_com = system("which img2sixel >& /dev/null")
+  sixel_com = system("which img2sixel > /dev/null 2>&1")
 
   return sixel_term && sixel_com
 end
