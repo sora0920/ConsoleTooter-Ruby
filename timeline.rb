@@ -420,6 +420,8 @@ def test_sixel
   end
   sixel_com = system("which img2sixel > /dev/null 2>&1")
 
+  puts "Use Sixel: #{sixel_term && sixel_com}"
+
   return sixel_term && sixel_com
 end
 
