@@ -122,15 +122,15 @@ class Toot
     if @account.emojis?
       @account.emojis.each{ |emoji|
         code = Regexp.new(":#{emoji["shortcode"]}:")
-        @account.display_name =  @account.display_name.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
+        @account.display_name =  @account.display_name.gsub(code, "#{`curl -L -k -s #{emoji["static_url"]} | img2sixel -w 15 -h 15`} \x1b[1A\x1b[1C")
       }
     end
 
     if self.emojis?
       @emojis.each{ |emoji|
         code = Regexp.new(":#{emoji["shortcode"]}:")
-        @spoiler_text = @spoiler_text.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
-        @content = @content.gsub(code, "#{`img2sixel -w 15 -h 15 #{emoji["static_url"]}`} \x1b[1A\x1b[1C")
+        @spoiler_text = @spoiler_text.gsub(code, "#{`curl -L -k -s #{emoji["static_url"]} | img2sixel -w 15 -h 15`} \x1b[1A\x1b[1C")
+        @content = @content.gsub(code, "#{`curl -L -k -s #{emoji["static_url"]} | img2sixel -w 15 -h 15`} \x1b[1A\x1b[1C")
       }
     end
   end
@@ -193,7 +193,7 @@ class Toot
   def printimg
     @media_attachments.each do |img|
       if img["type"] == "image"
-        system("img2sixel #{img["preview_url"]}")
+        system("curl -L -k -s #{img["preview_url"]} | img2sixel")
       end
     end
   end
