@@ -148,17 +148,28 @@ class Toot
         else
           ""
       end
-    print "#{vi}\e[33m#{@account.display_name}\e[32m @#{@account.acct} "
+    print "#{vi}"
+    print "\e[33m"
+    print "#{@account.display_name}"
+    print "\e[32m"
+    print " @#{@account.acct} "
+
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
   end
 
   def print_reblog
-    print "\e[32mRT "
+    print "\e[32m"
+    print "RT "
     print_user_icon("32", true)
   end
 
   def print_reblog_no_sixel
-    print "\e[32mRT \e[33m#{@rebloger.display_name}\e[32m @#{@rebloger.acct} \n"
+    print "\e[32m"
+    print "RT "
+    print "\e[33m"
+    print "#{@rebloger.display_name}"
+    print "\e[32m"
+    print " @#{@rebloger.acct} \n"
   end
 
   def parse_toot_body
@@ -227,15 +238,31 @@ class Notification
     when "reblog", "favourite", "mention" then
       case @type
       when "mention" then
-        print "\e[37;0;1m↩️  Reply "
+        print "\e[37;0;1m"
+        print "↩️  Reply "
       when "favourite" then
-        print "\e[37;0;1m🌠 Favourite \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
+        print "\e[37;0;1m"
+        print "🌠 Favourie "
+        print "\e[33m"
+        print "#{@account.display_name}"
+        print "\e[32m"
+        print " @#{@account.acct} \n"
       when "reblog" then
-        print "\e[37;0;1m🔄 Boost \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
+        print "\e[37;0;1m"
+        print "🔄 Boost "
+        print "\e[33m"
+        print "#{@account.display_name}"
+        print "\e[32m"
+        print " @#{@account.acct} \n"
       end
       @status.print_toot
     when "follow" then
-      print "\e[37;0;1m📲 Follow \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
+      print "\e[37;0;1m"
+      print "📲 Follo "
+      print "\e[33m"
+      print "#{@account.display_name}"
+      print "\e[32m "
+      print "@#{@account.acct} \n"
     end
   end
 end
