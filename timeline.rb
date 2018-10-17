@@ -221,7 +221,7 @@ class Toot
 end
 
 class Notification
-  def initialize(json)
+  def initialize(json, safe, img)
     @id = json["id"]
     @type = json["type"]
     @created_at = json["created_at"]
@@ -231,6 +231,8 @@ class Notification
               else
                 ""
               end
+    @safe = safe
+    @img = img
   end
 
   def print_notification
@@ -255,7 +257,23 @@ class Notification
         print "\e[32m"
         print " @#{@account.acct} \n"
       end
-      @status.print_toot
+      if @safe
+        @status.to_safe
+      end
+      @status.parse_toot_body
+      if @img
+        @status.print_user_icon("32", false)
+        @status.shortcode2emoji
+      end
+      @status.print_toot_info
+      if @img
+        print "\x1b[5C"
+      end
+      @status.print_toot_body
+      if @img
+        @status.printimg
+        puts "\n"
+      end
     when "follow" then
       print "\e[37;0;1m"
       print "📲 Follo "
@@ -313,7 +331,7 @@ def sse_parse(stream)
   }
 end
 
-def stream(account, tl, param, img, safe)
+def stream(account, tl, param, img, safe, notification_only)
   uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{tl}")
 
   uri.query = URI.encode_www_form(param)
@@ -325,7 +343,12 @@ def stream(account, tl, param, img, safe)
     req["Authorization"] = " Bearer " + account["token"]
 
     https.request(req) do |res|
-      puts "Connect: #{res.code}"
+      if notification_only
+        puts "Connect(Notification): #{res.code}"
+      else
+        puts "Connect(#{tl}): #{res.code}"
+      end
+
       if res.code != "200"
         puts res.message
         puts res.body
@@ -335,12 +358,12 @@ def stream(account, tl, param, img, safe)
         while index = buffer.index(/\r\n\r\n|\n\n/)
           stream = buffer.slice!(0..index)
           json = sse_parse(stream)
-          if json[:event] == "update"
+          if json[:event] == "update" && !notification_only
             ary = []
             ary.push(JSON.parse(json[:body]))
             print_timeline(ary, false, param, img, true, safe)
           elsif json[:event] == "notification"
-            n = Notification.new(JSON.parse(json[:body]))
+            n = Notification.new(JSON.parse(json[:body]), safe, img)
             n.print_notification
           end
         end
@@ -508,7 +531,14 @@ if stream
   end
 
   begin
-    stream(account, tl, param, img, safe)
+    if tl == "user"
+      stream(account, tl, param, img, safe, false)
+    else
+      Thread.new{
+        stream(account, tl, param, img, safe, false)
+      }
+      stream(account, "user", param, img, safe, true)
+    end
   rescue Interrupt
     puts "\nBye👋"
     print "\e[m"
