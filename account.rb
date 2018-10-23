@@ -1,8 +1,14 @@
 require "json"
 
-def load_account(file)
+def load_account
+  config_path = if ENV["CT_CONFIG_PATH"].nil?
+                  "account.json"
+                else
+                  ENV["CT_CONFIG_PATH"]
+                end
+
   begin
-    file = File.open(file, "a+")
+    file = File.open(config_path, "a+")
   rescue
     puts "Error"
     exit 1

@@ -32,12 +32,7 @@ def follow (account, id)
 end
 
 
-config_path = if ENV["CT_CONFIG_PATH"].nil?
-                "account.json"
-              else
-                ENV["CT_CONFIG_PATH"]
-              end
-account = load_account(config_path)
+account = load_account
 
 if ARGV[0].nil? || ARGV[0].empty? then
   puts "Error: ARGV[0] is empty!"

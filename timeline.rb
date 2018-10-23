@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "ncurses.rb"
+#require "ncurses.rb"
 require "json"
 require "net/http"
 require "uri"
@@ -452,12 +452,8 @@ def test_sixel
   return sixel_term && sixel_com
 end
 
-config_path = if ENV["CT_CONFIG_PATH"].nil?
-                "account.json"
-              else
-                ENV["CT_CONFIG_PATH"]
-              end
-account = load_account(config_path)
+
+account = load_account
 tl = "home"
 tl_id = nil
 limit = 20
