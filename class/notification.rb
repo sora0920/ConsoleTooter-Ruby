@@ -54,7 +54,7 @@ class Notification
       end
     when "follow" then
       print "\e[37;0;1m"
-      print "📲 Follo "
+      print "📲 Follow "
       print "\e[33m"
       print "#{@account.display_name}"
       print "\e[32m "
