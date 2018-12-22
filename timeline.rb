@@ -67,6 +67,7 @@ def stream(account, tl, param, img, safe, notification_only)
           elsif json[:event] == "notification"
             n = Notification.new(JSON.parse(json[:body]), safe, img)
             n.print_notification
+            print_screen_line
           end
         end
       end
