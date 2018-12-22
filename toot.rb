@@ -5,32 +5,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'mime/types'
-
-def load_account(file)
-  begin
-    file = File.open(file, "a+")
-  rescue
-    puts "Error"
-    exit 1
-  end
-
-  file_str = []
-  file.each_line do |line|
-    file_str.push(line.chop)
-  end
-
-  file_str = file_str.join("\n")
-
-  file.close
-
-  begin
-    ac = JSON.parse(file_str)
-  rescue
-    puts "Parse Error"
-    exit 1
-  end
-  return ac
-end
+require_relative "./account.rb"
 
 def posttoot (vis, cw, account, body, reply_id, media_id, sen)
   uri = URI.parse("https://" + account["host"] + "/api/v1/statuses")
@@ -107,12 +82,7 @@ def to_suddenly_death(toot)
   end
 end
 
-config_path = if ENV["CT_CONFIG_PATH"].nil?
-                "account.json"
-              else
-                ENV["CT_CONFIG_PATH"]
-              end
-account = load_account(config_path)
+account = load_account
 vis = "public"
 cw = ""
 reply_id = ""

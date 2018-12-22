@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "ncurses.rb"
+#require "ncurses.rb"
 require "json"
 require "net/http"
 require "uri"
@@ -8,263 +8,10 @@ require "thread"
 require "nokogiri"
 require "optparse"
 require "time"
-
-class User
-  attr_reader :acct, :emojis, :display_name, :avatar
-  attr_writer :display_name
-
-  def initialize(account)
-    @id = account["id"]
-    @username = account["username"]
-    @display_name = if account["display_name"] == ""
-                      account["username"]
-                    else
-                      account["display_name"]
-                    end
-    @acct = account["acct"]
-    @created_at = account["created_at"]
-    @locked = account["locked"]
-    @followers_count = account["followers_count"]
-    @following_count = account["following_count"]
-    @statuses_count = account["statuses_count"]
-    @note = account["note"]
-    @url = account["url"]
-    @avatar = account["avatar_static"]
-    @header = account["header"]
-    @moved = account["moved"]
-    @emojis = account["emojis"]
-  end
-
-  def emojis?
-    return !@emojis.nil?
-  end
-end
-
-class Toot
-  attr_reader :id, :emojis
-
-  def initialize(toot)
-    @id = toot["id"]
-    @url = toot["url"]
-    @account = User.new(toot["account"])
-    @in_reply_to_id = toot["in_reply_to_id"]
-    @in_reply_to_account_id = toot["in_reply_to_account_id"]
-    @reblog = toot["reblog"]
-    @content = toot["content"]
-    @created_at = toot["created_at"]
-    @emojis = toot["emojis"]
-    @reblogs_count = toot["reblogs_count"]
-    @favourites_count = toot["favourites_count"]
-    @reblogged = toot["reblogged"]
-    @favourited = toot["favourited"]
-    @muted = toot["muted"]
-    @sensitive = toot["sensitive"]
-    @spoiler_text = toot["spoiler_text"]
-    @visibility = toot["visibility"]
-    @media_attachments = toot["media_attachments"]
-    @mentions = toot["mentions"]
-    @tags = toot["tags"]
-    @application = toot["application"]
-    @language = toot["language"]
-    @pinned = toot["pinned"]
-    if !toot["reblog"].to_s.empty?
-      @rebloger = User.new(toot["account"])
-    end
-  end
-
-  def reblog_parse
-    @id = @reblog["id"]
-    @url = @reblog["url"]
-    @account = User.new(@reblog["account"])
-    @in_reply_to_id = @reblog["in_reply_to_id"]
-    @in_reply_to_account_id = @reblog["in_reply_to_account_id"]
-    @content = @reblog["content"]
-    @created_at = @reblog["created_at"]
-    @emojis = @reblog["emojis"]
-    @reblogs_count = @reblog["reblogs_count"]
-    @favourites_count = @reblog["favourites_count"]
-    @reblogged = @reblog["reblogged"]
-    @favourited = @reblog["favourited"]
-    @muted = @reblog["muted"]
-    @sensitive = @reblog["sensitive"]
-    @spoiler_text = @reblog["spoiler_text"]
-    @visibility = @reblog["visibility"]
-    @media_attachments = @reblog["media_attachments"]
-    @mentions = @reblog["mentions"]
-    @tags = @reblog["tags"]
-    @application = @reblog["application"]
-    @language = @reblog["language"]
-    @pinned = @reblog["pinned"]
-  end
-
-  def reblog?
-    return !@reblog.to_s.empty?
-  end
-
-  def images?
-    return @media_attachments.length >= 1
-  end
-
-  def emojis?
-    return !@emojis.nil?
-  end
-
-  def to_safe
-    if @sensitive
-      @media_attachments = {}
-    end
-    if !@spoiler_text.empty?
-      @content = "<p>🔞In Safe Mode, This Content Can't be Displayd.🔞</p>"
-    end
-  end
-
-  def shortcode2emoji
-    if @account.emojis?
-      @account.emojis.each{ |emoji|
-        code = Regexp.new(":#{emoji["shortcode"]}:")
-        @account.display_name =  @account.display_name.gsub(code, "#{`curl -L -k -s #{emoji["static_url"]} | img2sixel -w 15 -h 15`} \x1b[1A\x1b[1C")
-      }
-    end
-
-    if self.emojis?
-      @emojis.each{ |emoji|
-        code = Regexp.new(":#{emoji["shortcode"]}:")
-        @spoiler_text = @spoiler_text.gsub(code, "#{`curl -L -k -s #{emoji["static_url"]} | img2sixel -w 15 -h 15`} \x1b[1A\x1b[1C")
-        @content = @content.gsub(code, "#{`curl -L -k -s #{emoji["static_url"]} | img2sixel -w 15 -h 15`} \x1b[1A\x1b[1C")
-      }
-    end
-  end
-
-  def print_toot_info
-    vi = case @visibility
-        when "public" then
-          ""
-        when "unlisted" then
-          "🔓 "
-        when "private" then
-          "🔒 "
-        when "direct" then
-          "✉ "
-        else
-          ""
-      end
-    print "#{vi}\e[33m#{@account.display_name}\e[32m @#{@account.acct} "
-    print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
-  end
-
-  def print_reblog
-    print "\e[32mRT "
-    print_user_icon("32", true)
-  end
-
-  def print_reblog_no_sixel
-    print "\e[32mRT \e[33m#{@rebloger.display_name}\e[32m @#{@rebloger.acct} \n"
-  end
-
-  def parse_toot_body
-    if !@spoiler_text.empty?
-      s = Nokogiri::HTML.parse(@spoiler_text,nil,"UTF-8")
-      s.search('br').each do |br|
-        br.replace("\n")
-      end
-
-      @spoiler_text = s.text
-    end
-
-    t = Nokogiri::HTML.parse(@content,nil,"UTF-8")
-
-    t.search('br').each do |br|
-      br.replace("\n")
-    end
-
-    @content = t.text
-  end
-
-  def print_toot_body
-    if !@spoiler_text.empty?
-      print "#{@spoiler_text}"
-      puts "\n"
-    end
-
-    print "#{@content}"
-    puts "\n\n"
-  end
-
-  def printimg
-    @media_attachments.each do |img|
-      if img["type"] == "image"
-        system("curl -L -k -s #{img["preview_url"]} | img2sixel")
-      end
-    end
-  end
-
-  def print_user_icon(size, reblog)
-    icon = if reblog
-             @rebloger.avatar
-           else
-             @account.avatar
-           end
-    print `curl -L -k -s #{icon} | img2sixel -w #{size} -h #{size}`
-    print "\x1b[2A\x1b[5C"
-  end
-end
-
-class Notification
-  def initialize(json)
-    @id = json["id"]
-    @type = json["type"]
-    @created_at = json["created_at"]
-    @account = User.new(json["account"])
-    @status = if !json["status"].nil?
-                Toot.new(json["status"])
-              else
-                ""
-              end
-  end
-
-  def print_notification
-    case @type
-    when "reblog", "favourite", "mention" then
-      case @type
-      when "mention" then
-        print "\e[37;0;1m↩️  Reply "
-      when "favourite" then
-        print "\e[37;0;1m🌠 Favourite \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
-      when "reblog" then
-        print "\e[37;0;1m🔄 Boost \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
-      end
-      @status.print_toot
-    when "follow" then
-      print "\e[37;0;1m📲 Follow \e[33m#{@account.display_name}\e[32m @#{@account.acct} \n"
-    end
-  end
-end
-
-def load_account(file)
-  begin
-    file = File.open(file, "a+")
-  rescue
-    puts "Error"
-    exit 1
-  end
-
-  file_str = []
-  file.each_line do |line|
-    file_str.push(line.chop)
-  end
-
-  file_str = file_str.join("\n")
-
-  file.close
-
-  begin
-    ac = JSON.parse(file_str)
-  rescue
-    puts "Parse Error"
-    exit 1
-  end
-  return ac
-end
+require_relative "./account.rb"
+require_relative "./class/user.rb"
+require_relative "./class/toot.rb"
+require_relative "./class/notification.rb"
 
 def sse_parse(stream)
   data = ""
@@ -286,7 +33,7 @@ def sse_parse(stream)
   }
 end
 
-def stream(account, tl, param, img, safe)
+def stream(account, tl, param, img, safe, notification_only)
   uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{tl}")
 
   uri.query = URI.encode_www_form(param)
@@ -298,7 +45,12 @@ def stream(account, tl, param, img, safe)
     req["Authorization"] = " Bearer " + account["token"]
 
     https.request(req) do |res|
-      puts "Connect: #{res.code}"
+      if notification_only
+        puts "Connect(Notification): #{res.code}"
+      else
+        puts "Connect(#{tl}): #{res.code}"
+      end
+
       if res.code != "200"
         puts res.message
         puts res.body
@@ -308,12 +60,12 @@ def stream(account, tl, param, img, safe)
         while index = buffer.index(/\r\n\r\n|\n\n/)
           stream = buffer.slice!(0..index)
           json = sse_parse(stream)
-          if json[:event] == "update"
+          if json[:event] == "update" && !notification_only
             ary = []
             ary.push(JSON.parse(json[:body]))
             print_timeline(ary, false, param, img, true, safe)
           elsif json[:event] == "notification"
-            n = Notification.new(JSON.parse(json[:body]))
+            n = Notification.new(JSON.parse(json[:body]), safe, img)
             n.print_notification
           end
         end
@@ -342,6 +94,15 @@ def timeline_load(account, tl, param)
   end
 
   return JSON.parse(res.body)
+end
+
+def print_screen_line
+  term_cols = `tput cols`
+  lines = ""
+  while lines.length < term_cols.to_i do
+    lines += "-"
+  end
+  puts lines
 end
 
 def print_timeline(toots, rev, param, img, stream, safe)
@@ -382,13 +143,14 @@ def print_timeline(toots, rev, param, img, stream, safe)
           end
         else
           t.print_reblog_no_sixel
-          print "\n\n"
+          print "\e[0m"
         end
       end
       if img
         t.printimg
         puts "\n"
       end
+      print_screen_line
     }
 end
 
@@ -425,12 +187,8 @@ def test_sixel
   return sixel_term && sixel_com
 end
 
-config_path = if ENV["CT_CONFIG_PATH"].nil?
-                "account.json"
-              else
-                ENV["CT_CONFIG_PATH"]
-              end
-account = load_account(config_path)
+
+account = load_account
 tl = "home"
 tl_id = nil
 limit = 20
@@ -481,7 +239,14 @@ if stream
   end
 
   begin
-    stream(account, tl, param, img, safe)
+    if tl == "user"
+      stream(account, tl, param, img, safe, false)
+    else
+      Thread.new{
+        stream(account, tl, param, img, safe, false)
+      }
+      stream(account, "user", param, img, safe, true)
+    end
   rescue Interrupt
     puts "\nBye👋"
     print "\e[m"

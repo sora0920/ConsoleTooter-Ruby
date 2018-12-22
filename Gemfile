@@ -6,4 +6,5 @@ source "https://rubygems.org"
 gem "mime-types"
 gem "ncurses-ruby"
 gem "nokogiri"
+gem "curses"
 
