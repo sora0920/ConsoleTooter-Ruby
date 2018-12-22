@@ -96,6 +96,15 @@ def timeline_load(account, tl, param)
   return JSON.parse(res.body)
 end
 
+def print_screen_line
+  term_cols = `tput cols`
+  lines = ""
+  while lines.length < term_cols.to_i do
+    lines += "-"
+  end
+  puts lines
+end
+
 def print_timeline(toots, rev, param, img, stream, safe)
   if !rev
     _toots = toots
@@ -134,13 +143,14 @@ def print_timeline(toots, rev, param, img, stream, safe)
           end
         else
           t.print_reblog_no_sixel
-          print "\n\n"
+          print "\e[0m"
         end
       end
       if img
         t.printimg
         puts "\n"
       end
+      print_screen_line
     }
 end
 
