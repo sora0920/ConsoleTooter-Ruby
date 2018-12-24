@@ -19,7 +19,7 @@ class Notification
       case @type
       when "mention" then
         print "\e[37;0;1m"
-        print "↩️  Reply "
+        print "↩️  Reply \n"
       when "favourite" then
         print "\e[37;0;1m"
         print "🌠 Favourie "
