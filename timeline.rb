@@ -83,6 +83,10 @@ def print_timeline(toots, rev, param, img, stream, safe)
         t.printimg
         puts "\n"
       end
+
+      print "ID: "
+      t.print_post_id
+
       print_screen_line
     }
 end

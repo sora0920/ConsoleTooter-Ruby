@@ -167,6 +167,10 @@ class Toot
     end
   end
 
+  def print_post_id
+    print "#{@id}\n"
+  end
+
   def print_user_icon(size, reblog)
     icon = if reblog
              @rebloger.avatar
