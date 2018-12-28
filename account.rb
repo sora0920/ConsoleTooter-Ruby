@@ -26,7 +26,7 @@ def load_account
   begin
     ac = JSON.parse(file_str)
   rescue
-    puts "Parse Error"
+    puts "Parse Error: Account Config"
     exit 1
   end
   return ac
