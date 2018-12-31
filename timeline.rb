@@ -38,6 +38,14 @@ def print_screen_line
   puts lines
 end
 
+
+def print_delete(id)
+  print "\e[m"
+  print "💥 Delete \n"
+  print "ID: #{id}"
+  print "\n"
+end
+
 def print_timeline(toots, rev, param, img, stream, safe)
   if !rev
     _toots = toots

@@ -105,6 +105,9 @@ def stream(account, tl, param, img, safe, notification_only)
             n = Notification.new(JSON.parse(json[:body]), safe, img)
             n.print_notification
             print_screen_line
+          elsif json[:event] == "delete"
+            print_delete(json[:body])
+            print_screen_line
           end
         end
       end
