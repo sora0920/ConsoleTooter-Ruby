@@ -3,27 +3,35 @@
 require 'net/http'
 require 'uri'
 require 'json'
+require 'optparse'
 require_relative "./account.rb"
+require_relative "./api.rb"
 
-def favourite(account, id)
-  uri = URI.parse("https://" + account["host"] + "/api/v1/statuses/#{id}/favourite")
-  https = Net::HTTP.new(uri.host, uri.port)
-  https.use_ssl = true
-
-  req = Net::HTTP::Post.new(uri.request_uri)
-  req["Authorization"] = " Bearer " + account["token"]
-
-  res = https.request(req)
-
-  puts res.code
-  puts res.message
-end
 
 account = load_account
+count = 1
+
+OptionParser.new do |opt|
+  opt.on('--count [n]', 'Favourite count times') { |n| count = n.to_i - 1 }
+  opt.parse!(ARGV)
+end
+
 
 if ARGV[0].nil? || ARGV[0].empty? then
   puts "Error: ARGV[0] is empty!"
   exit!
 end
 
-favourite(account, ARGV[0])
+if count > 2
+  i = 0
+  unfavourite(account, ARGV[0])
+  while count > i
+    favourite(account, ARGV[0])
+    unfavourite(account, ARGV[0])
+    puts "#{count - i} count left."
+    i += 1
+  end
+  favourite(account, ARGV[0])
+else
+  favourite(account, ARGV[0])
+end

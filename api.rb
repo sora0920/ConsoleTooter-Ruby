@@ -183,3 +183,30 @@ def follow (account, id)
   puts res.message
 end
 
+def favourite(account, id)
+  uri = URI.parse("https://" + account["host"] + "/api/v1/statuses/#{id}/favourite")
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Post.new(uri.request_uri)
+  req["Authorization"] = " Bearer " + account["token"]
+
+  res = https.request(req)
+
+  puts res.code
+  puts res.message
+end
+
+def unfavourite(account, id)
+  uri = URI.parse("https://" + account["host"] + "/api/v1/statuses/#{id}/unfavourite")
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Post.new(uri.request_uri)
+  req["Authorization"] = " Bearer " + account["token"]
+
+  res = https.request(req)
+
+  puts res.code
+  puts res.message
+end
