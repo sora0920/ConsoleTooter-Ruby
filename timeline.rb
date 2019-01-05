@@ -38,7 +38,6 @@ def print_screen_line
   puts lines
 end
 
-
 def print_delete(id)
   print "\e[m"
   print "💥 Delete #{Time.new.localtime.strftime("%Y/%m/%d %H:%M")}\n"
