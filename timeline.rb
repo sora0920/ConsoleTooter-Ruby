@@ -41,7 +41,7 @@ end
 
 def print_delete(id)
   print "\e[m"
-  print "💥 Delete \n"
+  print "💥 Delete #{Time.new.localtime.strftime("%Y/%m/%d %H:%M")}\n"
   print "ID: #{id}"
   print "\n"
 end
