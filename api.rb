@@ -210,3 +210,34 @@ def unfavourite(account, id)
   puts res.code
   puts res.message
 end
+
+def follow_request_reply(account, id, reply)
+  uri = URI.parse("https://" + account["host"] + "/api/v1/follow_requests/#{id}/#{reply}")
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Post.new(uri.request_uri)
+  req["Authorization"] = " Bearer " + account["token"]
+
+  res = https.request(req)
+
+  puts res.code
+  puts res.message
+end
+
+def get_follow_requests(account)
+  uri = URI.parse("https://#{account["host"]}/api/v1/follow_requests")
+
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Get.new(uri.path)
+  req["Authorization"] = " Bearer " + account["token"]
+
+  res = https.request(req)
+
+  requests = JSON.parse(res.body)
+
+  print "#{res.code} #{res.message}\n"
+  return requests
+end

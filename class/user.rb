@@ -1,5 +1,5 @@
 class User
-  attr_reader :acct, :emojis, :display_name, :avatar
+  attr_reader :acct, :emojis, :display_name, :avatar, :note, :url, :id
   attr_writer :display_name
 
   def initialize(account)
@@ -26,5 +26,13 @@ class User
 
   def emojis?
     return !@emojis.nil?
+  end
+
+  def lock_status
+    if @locked
+      return "🔒 "
+    else
+      return ""
+    end
   end
 end
