@@ -59,6 +59,7 @@ class Notification
       print "#{@account.display_name}"
       print "\e[32m "
       print "@#{@account.acct} \n"
+      print "\e[0m"
     end
   end
 end
