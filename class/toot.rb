@@ -110,7 +110,7 @@ class Toot
     print "\e[33m"
     print "#{@account.display_name}"
     print "\e[32m"
-    print " @#{@account.acct} "
+    print " @#{@account.acct}#{@account.lock_status} "
 
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
   end
