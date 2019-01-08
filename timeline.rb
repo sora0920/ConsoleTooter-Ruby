@@ -45,6 +45,7 @@ def print_delete(id)
   print "\n"
 end
 
+# img rev safeはflagsに置き換え。 できればstreamも置き換えたいなぁ...
 def print_timeline(toots, rev, param, img, stream, safe)
   if !rev
     _toots = toots
@@ -113,6 +114,7 @@ end
 
 
 account = load_account
+# tlとかもできれば置き換えたい
 tl = "home"
 tl_id = nil
 limit = 20
@@ -122,7 +124,8 @@ img = test_sixel
 rev = false
 safe = false
 
-#flags = {stream:false, img:false, rev:false, safe:false}
+# お前にこのコードの未来がかかってるんだよ!!!!!!!
+flags = {"stream" => false, "img" => test_sixel, "rev" => false, "safe" => false}
 
 OptionParser.new do |opt|
   opt.on('--home',          'Get the home timeline'                                 ) { tl = "home" }
@@ -136,21 +139,21 @@ OptionParser.new do |opt|
                                                                                          tl = "hashtag"
                                                                                          tl_id = tag
                                                                                       }
-  opt.on('--stream',        'Use streaming'                                         ) { stream = true }
+  opt.on('--stream',        'Use streaming'                                         ) { flags["stream"] = true }
   opt.on('--onlymedia',     'Get posts only included images'                        ) { param.store("only_media", "1") }
-  opt.on('--noimg',         "Don't be displayd image"                               ) { img = false }
-  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { safe = true }
+  opt.on('--noimg',         "Don't be displayd image"                               ) { flags["img"] = false }
+  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { flags["safe"] = true }
   opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
   opt.on('--lists',         'Get your lists'                                        ) {
                                                                                          listlist(account)
                                                                                          exit 0
                                                                                       }
-  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { rev = true }
+  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { flags["rev"] = true }
 
   opt.parse!(ARGV)
 end
 
-if stream
+if flags["stream"]
   case tl
   when "home" then
     tl = "user"
@@ -164,12 +167,12 @@ if stream
 
   begin
     if tl == "user"
-      stream(account, tl, param, img, safe, false)
+      stream(account, tl, param, flags["img"], flags["safe"], false)
     else
       Thread.new{
-        stream(account, tl, param, img, safe, false)
+        stream(account, tl, param, flags["img"], flags["safe"], false)
       }
-      stream(account, "user", param, img, safe, true)
+      stream(account, "user", param, flags["img"], flags["safe"], true)
     end
   rescue Interrupt
     puts "\nBye👋"
@@ -188,6 +191,6 @@ else
   end
 
   param.store("limit", "#{limit}")
-  print_timeline(timeline_load(account, tl, param), rev, param, img, false, safe)
+  print_timeline(timeline_load(account, tl, param), flags["rev"], param, flags["img"], false, flags["safe"])
   print "\e[m"
 end
