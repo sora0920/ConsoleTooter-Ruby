@@ -112,6 +112,9 @@ def test_sixel
   return sixel_term && sixel_com
 end
 
+def test_notify_send
+  return system("which notify-send > /dev/null 2>&1")
+end
 
 account = load_account
 # tlとかもできれば置き換えたい
@@ -125,7 +128,12 @@ rev = false
 safe = false
 
 # お前にこのコードの未来がかかってるんだよ!!!!!!!
-flags = {"stream" => false, "img" => test_sixel, "rev" => false, "safe" => false}
+flags = {"stream" => false,
+         "img" => test_sixel,
+         "rev" => false,
+         "safe" => false,
+         "notify_x" => test_notify_send
+}
 
 OptionParser.new do |opt|
   opt.on('--home',          'Get the home timeline'                                 ) { tl = "home" }

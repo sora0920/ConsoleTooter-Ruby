@@ -1,5 +1,5 @@
 class Toot
-  attr_reader :id, :emojis
+  attr_reader :id, :emojis, :content
 
   def initialize(toot)
     @id = toot["id"]
