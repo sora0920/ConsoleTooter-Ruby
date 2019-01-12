@@ -46,6 +46,8 @@ def requests_operation(account)
       follow_request_reply(account, req_user.id, "reject")
     when "Skip", "skip", "S", "s" then
       puts "Skipped."
+    else
+      puts "Skipped."
     end
     print_screen_line
   }
