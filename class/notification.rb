@@ -54,7 +54,7 @@ class Notification
       end
     when "follow" then
       print "\e[37;0;1m"
-      print "📲 Follow "
+      print "📲 Followed "
       print "\e[33m"
       print "#{@account.display_name}"
       print "\e[32m "
@@ -74,6 +74,8 @@ class Notification
     when "reblog" then
       @status.parse_toot_body
       system("notify-send '🔄 Boosted #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
+    when "follow" then
+      system("notify-send '📲 Followed #{@account.display_name}' > /dev/null 2>&1")
     end
   end
 end
