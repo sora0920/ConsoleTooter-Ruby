@@ -22,7 +22,7 @@ class Notification
         print "↩️  Reply \n"
       when "favourite" then
         print "\e[37;0;1m"
-        print "🌠 Favourie "
+        print "🌠 Favourited "
         print "\e[33m"
         print "#{@account.display_name}"
         print "\e[32m"
@@ -65,11 +65,12 @@ class Notification
 
   def send_notify_notification
     case @type
-    when "mention"
-      notify_title = "↩️  Reply from #{@account.display_name}"
+    when "mention" then
       @status.parse_toot_body
-      notify_body = "#{@status.content}"
-      system("notify-send '#{notify_title}' '#{notify_body}' > /dev/null 2>&1")
+      system("notify-send '↩️️  Reply from #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
+    when "favourite" then
+      @status.parse_toot_body
+      system("notify-send '🌠 Favourited #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
     end
   end
 end
