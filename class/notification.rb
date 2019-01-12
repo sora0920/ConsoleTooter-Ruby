@@ -62,4 +62,14 @@ class Notification
       print "\e[0m"
     end
   end
+
+  def send_notify_notification
+    case @type
+    when "mention"
+      notify_title = "↩️  Reply from #{@account.display_name}"
+      @status.parse_toot_body
+      notify_body = "#{@status.content}"
+      system("notify-send '#{notify_title}' '#{notify_body}' > /dev/null 2>&1")
+    end
+  end
 end
