@@ -29,7 +29,7 @@ class Notification
         print " @#{@account.acct} \n"
       when "reblog" then
         print "\e[37;0;1m"
-        print "🔄 Boost "
+        print "🔄 Boosted "
         print "\e[33m"
         print "#{@account.display_name}"
         print "\e[32m"
@@ -71,6 +71,9 @@ class Notification
     when "favourite" then
       @status.parse_toot_body
       system("notify-send '🌠 Favourited #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
+    when "reblog" then
+      @status.parse_toot_body
+      system("notify-send '🔄 Boosted #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
     end
   end
 end
