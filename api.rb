@@ -243,3 +243,19 @@ def get_follow_requests(account)
   print "#{res.code} #{res.message}\n"
   return requests
 end
+
+def get_status(account, id)
+  uri = URI.parse("https://#{account["host"]}/api/v1/statuses/#{id}")
+
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Get.new(uri.path)
+  req["Authorization"] = "Bearer #{account["token"]}"
+
+  res = https.request(req)
+
+  puts res.code
+  puts res.message
+  return JSON.parse(res.body)
+end
