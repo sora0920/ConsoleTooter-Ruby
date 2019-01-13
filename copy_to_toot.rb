@@ -15,13 +15,13 @@ def copy_to_toot(account, id, opts)
   # return array
   status = get_posting_status(get_status(account, id))
 
-  if opts["fav"]
+  if opts["favourite"]
     favourite(account, id)
   end
-  if opts["vis"].empty?
+  if opts["visibility"].empty?
     post_toot(status["visibility"], status["spoiler_text"], account, status["status"], status["in_reply_to_id"], "", status["sensitive"])
   else
-    post_toot(opts["vis"], status["spoiler_text"], account, status["status"], status["in_reply_to_id"], "", status["sensitive"])
+    post_toot(opts["visibility"], status["spoiler_text"], account, status["status"], status["in_reply_to_id"], "", status["sensitive"])
   end
 end
 
@@ -56,15 +56,15 @@ def get_posting_status(json)
 end
 
 opts = {
-  "vis" => "",
-  "fav" => false
+  "visibility" => "",
+  "favourite" => false
 }
 OptionParser.new do |opt|
-  opt.on('--public',   'Set visibility to public'  ) { opts["vis"] = "public" }
-  opt.on('--unlisted', 'Set visibility to unlisted') { opts["vis"] = "unlisted" }
-  opt.on('--private',  'Set visibility to private' ) { opts["vis"] = "private" }
-  opt.on('--direct',   'Set visibility to direct'  ) { opts["vis"] = "direct" }
-  opt.on('--fav',      'Favourited to copy'        ) { opts["fav"] = true }
+  opt.on('--public',   'Set visibility to public'  ) { opts["visibility"] = "public" }
+  opt.on('--unlisted', 'Set visibility to unlisted') { opts["visibility"] = "unlisted" }
+  opt.on('--private',  'Set visibility to private' ) { opts["visibility"] = "private" }
+  opt.on('--direct',   'Set visibility to direct'  ) { opts["visibility"] = "direct" }
+  opt.on('--fav',      'Favourited to copy'        ) { opts["favourite"] = true }
 
   opt.parse!(ARGV)
 end
