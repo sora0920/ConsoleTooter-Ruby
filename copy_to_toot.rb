@@ -11,11 +11,14 @@ require_relative "./class/user.rb"
 
 account = load_account
 
-def copy_to_toot(account, id, vis)
+def copy_to_toot(account, id, flags)
   # return array
   status = get_posting_status(get_status(account, id))
 
-  if vis.empty?
+  if flags["fav"]
+    favourite(account, id)
+  end
+  if flags["vis"].empty?
     post_toot(status["visibility"], status["spoiler_text"], account, status["status"], status["in_reply_to_id"], "", status["sensitive"])
   else
     post_toot(vis, status["spoiler_text"], account, status["status"], status["in_reply_to_id"], "", status["sensitive"])
@@ -52,14 +55,18 @@ def get_posting_status(json)
   return result
 end
 
-vis = ""
+flags = {
+  "vis" => "",
+  "fav" => false
+}
 OptionParser.new do |opt|
-  opt.on('--public',   'Set visibility to public'  ) { vis = "public" }
-  opt.on('--unlisted', 'Set visibility to unlisted') { vis = "unlisted" }
-  opt.on('--private',  'Set visibility to private' ) { vis = "private" }
-  opt.on('--direct',   'Set visibility to direct'  ) { vis = "direct" }
+  opt.on('--public',   'Set visibility to public'  ) { flags["vis"] = "public" }
+  opt.on('--unlisted', 'Set visibility to unlisted') { flags["vis"] = "unlisted" }
+  opt.on('--private',  'Set visibility to private' ) { flags["vis"] = "private" }
+  opt.on('--direct',   'Set visibility to direct'  ) { flags["vis"] = "direct" }
+  opt.on('--fav',      'Favourited to copy'        ) { flags["fav"] = true }
 
   opt.parse!(ARGV)
 end
 
-copy_to_toot(account, ARGV[0], vis)
+copy_to_toot(account, ARGV[0], flags)
