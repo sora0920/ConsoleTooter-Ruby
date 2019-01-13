@@ -24,6 +24,15 @@ media_id = []
 sen = false
 sd = false
 
+opts = {
+  "sensitive" = false,
+  "sd" = false,
+  "visibility" = "public", 
+  "spoiler_text" = "",
+  "in_reply_to_id" = "",
+  "media_ids" = []
+}
+
 OptionParser.new do |opt|
   opt.on('--public',             'Set visibility to public'  ) { vis = "public" }
   opt.on('--unlisted',           'Set visibility to unlisted') { vis = "unlisted" }
