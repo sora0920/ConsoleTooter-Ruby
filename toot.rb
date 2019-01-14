@@ -17,22 +17,14 @@ end
 
 account = load_account
 
-vis = "public"
-cw = ""
-reply_id = ""
-media_id = []
-sen = false
-sd = false
-
 opts = {
   "sensitive" => false,
   "sd" => false,
-  "visibility" => "public", 
+  "visibility" => "public",
   "spoiler_text" => "",
   "in_reply_to_id" => "",
   "media_ids" => []
 }
-
 
 OptionParser.new do |opt|
   opt.on('--public',             'Set visibility to public'  ) { opts["visibility"] = "public" }
@@ -60,5 +52,4 @@ else
   body = ARGV[0]
 end
 
-# post_toot(opts["visibility"], opts["spoiler_text"], account, body, opts["in_reply_to_id"], opts["media_ids"], opts["sensitive"])
 post_toot2(account, body, opts)
