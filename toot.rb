@@ -33,6 +33,7 @@ opts = {
   "media_ids" => []
 }
 
+
 OptionParser.new do |opt|
   opt.on('--public',             'Set visibility to public'  ) { opts["visibility"] = "public" }
   opt.on('--unlisted',           'Set visibility to unlisted') { opts["visibility"] = "unlisted" }
@@ -59,4 +60,5 @@ else
   body = ARGV[0]
 end
 
-post_toot(opts["visibility"], opts["spoiler_text"], account, body, opts["in_reply_to_id"], opts["media_ids"], opts["sensitive"])
+# post_toot(opts["visibility"], opts["spoiler_text"], account, body, opts["in_reply_to_id"], opts["media_ids"], opts["sensitive"])
+post_toot2(account, body, opts)
