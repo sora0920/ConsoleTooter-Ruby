@@ -45,7 +45,7 @@ def print_delete(id)
   print "\n"
 end
 
-# img rev safeはflagsに置き換え。 できればstreamも置き換えたいなぁ...
+# img rev safeはoptsに置き換え。 できればstreamも置き換えたいなぁ...
 def print_timeline(toots, rev, param, img, stream, safe)
   if !rev
     _toots = toots
@@ -128,7 +128,7 @@ param = Hash.new
 #safe = false
 
 # お前にこのコードの未来がかかってるんだよ!!!!!!!
-flags = {
+opts = {
   "stream" => false,
   "img" => test_sixel,
   "rev" => false,
@@ -148,21 +148,21 @@ OptionParser.new do |opt|
                                                                                          tl = "hashtag"
                                                                                          tl_id = tag
                                                                                       }
-  opt.on('--stream',        'Use streaming'                                         ) { flags["stream"] = true }
+  opt.on('--stream',        'Use streaming'                                         ) { opts["stream"] = true }
   opt.on('--onlymedia',     'Get posts only included images'                        ) { param.store("only_media", "1") }
-  opt.on('--noimg',         "Don't be displayd image"                               ) { flags["img"] = false }
-  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { flags["safe"] = true }
+  opt.on('--noimg',         "Don't be displayd image"                               ) { opts["img"] = false }
+  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { opts["safe"] = true }
   opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
   opt.on('--lists',         'Get your lists'                                        ) {
                                                                                          listlist(account)
                                                                                          exit 0
                                                                                       }
-  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { flags["rev"] = true }
+  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { opts["rev"] = true }
 
   opt.parse!(ARGV)
 end
 
-if flags["stream"]
+if opts["stream"]
   case tl
   when "home" then
     tl = "user"
@@ -176,12 +176,12 @@ if flags["stream"]
 
   begin
     if tl == "user"
-      stream(account, tl, param, flags["img"], flags["safe"], false)
+      stream(account, tl, param, opts["img"], opts["safe"], false)
     else
       Thread.new{
-        stream(account, tl, param, flags["img"], flags["safe"], false)
+        stream(account, tl, param, opts["img"], opts["safe"], false)
       }
-      stream(account, "user", param, flags["img"], flags["safe"], true)
+      stream(account, "user", param, opts["img"], opts["safe"], true)
     end
   rescue Interrupt
     puts "\nBye👋"
@@ -200,6 +200,6 @@ else
   end
 
   param.store("limit", "#{limit}")
-  print_timeline(timeline_load(account, tl, param), flags["rev"], param, flags["img"], false, flags["safe"])
+  print_timeline(timeline_load(account, tl, param), opts["rev"], param, opts["img"], false, opts["safe"])
   print "\e[m"
 end
