@@ -4,7 +4,6 @@ require 'optparse'
 require_relative "./api.rb"
 require_relative "./account.rb"
 
-
 def to_suddenly_death(toot)
   if system("which echo-sd >& /dev/null")
     str = `echo-sd #{toot}`
@@ -32,8 +31,8 @@ OptionParser.new do |opt|
   opt.on('--private',            'Set visibility to private' ) { opts["visibility"] = "private" }
   opt.on('--direct',             'Set visibility to direct'  ) { opts["visibility"] = "direct" }
   opt.on('--cw [TEXT]',          'Set CW TEXT=warning text'  ) { |cw_txt| opts["spoiler_text"] = "#{cw_txt}" }
-  opt.on('--reply [Reply to ID]','Post reply'                ) { |re| opts["in_reply_to_id"] = "#{re.to_i}"}
-  opt.on('--media [path]',       'Post with images'          ) { |media| opts["media_ids"].push(postmedia(account, media))}
+  opt.on('--reply [Reply to ID]','Post reply'                ) { |re|     opts["in_reply_to_id"] = "#{re.to_i}"}
+  opt.on('--media [path]',       'Post with images'          ) { |media|  opts["media_ids"].push(postmedia(account, media))}
   opt.on('--nsfw',               'Set NSFW flag'             ) { opts["sensitive"] = true }
   opt.on('--sd',                 'To "totsuzen no shi"'      ) { opts["sd"] = true }
 
