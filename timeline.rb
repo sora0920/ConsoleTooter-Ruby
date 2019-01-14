@@ -121,18 +121,19 @@ account = load_account
 tl = "home"
 tl_id = nil
 limit = 20
-stream = false
+#stream = false
 param = Hash.new
-img = test_sixel
-rev = false
-safe = false
+#img = test_sixel
+#rev = false
+#safe = false
 
 # お前にこのコードの未来がかかってるんだよ!!!!!!!
-flags = {"stream" => false,
-         "img" => test_sixel,
-         "rev" => false,
-         "safe" => false,
-         "notify_x" => test_notify_send
+flags = {
+  "stream" => false,
+  "img" => test_sixel,
+  "rev" => false,
+  "safe" => false,
+  "notify_x" => test_notify_send
 }
 
 OptionParser.new do |opt|
