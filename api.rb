@@ -5,6 +5,34 @@ require 'mime/types'
 require "nokogiri"
 require "thread"
 
+# opts = sensitive, sd, visibility, spoiler_text, in_reply_to_id, media_ids
+def post_toot2 (account, body, opts)
+  uri = URI.parse("https://" + account["host"] + "/api/v1/statuses")
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Post.new(uri.request_uri)
+
+  data = {
+    status: body,
+    visibility: opts["visibility"],
+    spoiler_text: opts["spoiler_text"],
+    in_reply_to_id: opts["in_reply_to_id"],
+    media_ids: opts["media_ids"],
+    sensitive: opts["sensitive"]
+  }.to_json
+
+  req["Content-Type"] = "application/json"
+  req["Authorization"] = " Bearer " + account["token"]
+
+  req.body = data
+
+  res = https.request(req)
+
+  puts res.code
+  puts res.message
+end
+
 def post_toot (vis, cw, account, body, reply_id, media_id, sen)
   uri = URI.parse("https://" + account["host"] + "/api/v1/statuses")
   https = Net::HTTP.new(uri.host, uri.port)
