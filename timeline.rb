@@ -133,26 +133,30 @@ opts = {
   "img" => test_sixel,
   "rev" => false,
   "safe" => false,
-  "notify_x" => test_notify_send
+  "notify_x" => test_notify_send,
+  "tl" => "home",
+  "tl_id" => nil,
+  "limit" => 20,
+  "param" => Hash.new
 }
 
 OptionParser.new do |opt|
-  opt.on('--home',          'Get the home timeline'                                 ) { tl = "home" }
-  opt.on('--local',         'Get the local timeline'                                ) { tl = "local" }
-  opt.on('--public',        'Get the public timeline'                               ) { tl = "public" }
+  opt.on('--home',          'Get the home timeline'                                 ) { opts["tl"] = "home" }
+  opt.on('--local',         'Get the local timeline'                                ) { opts["tl"] = "local" }
+  opt.on('--public',        'Get the public timeline'                               ) { opts["tl"] = "public" }
   opt.on('--list [ID]',     'Get the list timeline'                                 ) { |id|
-                                                                                         tl = "list"
-                                                                                         tl_id = id
+                                                                                         opts["tl"] = "list"
+                                                                                         opts["tl_id"] = id
                                                                                       }
   opt.on('--hashtag [tag]', 'Get the hashtag timeline'                              ) { |tag|
-                                                                                         tl = "hashtag"
-                                                                                         tl_id = tag
+                                                                                         opts["tl"] = "hashtag"
+                                                                                         opts["tl_id"] = tag
                                                                                       }
   opt.on('--stream',        'Use streaming'                                         ) { opts["stream"] = true }
-  opt.on('--onlymedia',     'Get posts only included images'                        ) { param.store("only_media", "1") }
+  opt.on('--onlymedia',     'Get posts only included images'                        ) { opts["param"].store("only_media", "1") }
   opt.on('--noimg',         "Don't be displayd image"                               ) { opts["img"] = false }
   opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { opts["safe"] = true }
-  opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
+  opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| opts["limit"] = lim }
   opt.on('--lists',         'Get your lists'                                        ) {
                                                                                          listlist(account)
                                                                                          exit 0
@@ -163,25 +167,25 @@ OptionParser.new do |opt|
 end
 
 if opts["stream"]
-  case tl
+  case opts["tl"]
   when "home" then
-    tl = "user"
+    opts["tl"] = "user"
   when "local" then
-    tl = "public/local"
+    opts["tl"] = "public/local"
   when "list" then
-    param.store("list", "#{tl_id}")
+    opts["param"].store("list", "#{opts["tl_id"]}")
   when "hashtag" then
-    param.store("tag", "#{tl_id}")
+    opts["param"].store("tag", "#{opts["tl_id"]}")
   end
 
   begin
-    if tl == "user"
-      stream(account, tl, param, opts["img"], opts["safe"], false)
+    if opts["tl"] == "user"
+      stream(account, opts["tl"], opts["param"], opts["img"], opts["safe"], false)
     else
       Thread.new{
-        stream(account, tl, param, opts["img"], opts["safe"], false)
+        stream(account, opts["tl"], opts["param"], opts["img"], opts["safe"], false)
       }
-      stream(account, "user", param, opts["img"], opts["safe"], true)
+      stream(account, "user", opts["param"], opts["img"], opts["safe"], true)
     end
   rescue Interrupt
     puts "\nBye👋"
@@ -189,17 +193,17 @@ if opts["stream"]
     exit 0
   end
 else
-  case tl
+  case opts["tl"]
   when "local" then
-    tl = "public"
-    param.store("local","1")
+    opts["tl"] = "public"
+    opts["param"].store("local","1")
   when "list" then
-    tl += "/#{tl_id}?"
+    opts["tl"] += "/#{opts["tl_id"]}?"
   when "hashtag" then
-    tl = "tag/#{tl_id}?"
+    opts["tl"] = "tag/#{opts["tl_id"]}?"
   end
 
-  param.store("limit", "#{limit}")
-  print_timeline(timeline_load(account, tl, param), opts["rev"], param, opts["img"], false, opts["safe"])
+  opts["param"].store("limit", "#{opts["limit"]}")
+  print_timeline(timeline_load(account, opts["tl"], opts["param"]), opts["rev"], opts["param"], opts["img"], false, opts["safe"])
   print "\e[m"
 end
