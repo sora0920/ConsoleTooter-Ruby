@@ -180,12 +180,12 @@ if opts["stream"]
 
   begin
     if opts["tl"] == "user"
-      stream(account, opts["tl"], opts["param"], opts["img"], opts["safe"], false)
+      stream2(account, opts, false)
     else
       Thread.new{
-        stream(account, opts["tl"], opts["param"], opts["img"], opts["safe"], false)
+        stream2(account, opts, false)
       }
-      stream(account, "user", opts["param"], opts["img"], opts["safe"], true)
+      stream2(account, opts, true)
     end
   rescue Interrupt
     puts "\nBye👋"
