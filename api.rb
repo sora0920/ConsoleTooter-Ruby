@@ -145,6 +145,58 @@ def stream(account, tl, param, img, safe, notification_only)
   end
 end
 
+def stream2(account, opts, notification_only)# tl, param, img, safe, notification_only)
+  if notification_only
+    uri = URI.parse("https://#{account["host"]}/api/v1/streaming/user")
+  else
+    uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{opts["tl"]}")
+  end
+
+  uri.query = URI.encode_www_form(opts["param"])
+
+  buffer = ""
+
+  Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |https|
+    req = Net::HTTP::Get.new(uri)
+    req["Authorization"] = " Bearer " + account["token"]
+    req["Content-Type"] = "text/event-stream"
+
+    https.request(req) do |res|
+      if notification_only
+        puts "Connect(Notification): #{res.code}"
+      else
+        puts "Connect(#{opts["tl"]}): #{res.code}"
+      end
+
+      if res.code != "200"
+        puts res.message
+        puts res.body
+      end
+      res.read_body do |chunk|
+        buffer += chunk
+        while index = buffer.index(/\r\n\r\n|\n\n/)
+          stream = buffer.slice!(0..index)
+          json = sse_parse(stream)
+          if json[:event] == "update" && !notification_only
+            ary = []
+            ary.push(JSON.parse(json[:body]))
+            print_timeline(ary, false, opts["param"], opts["img"], true, opts["safe"])
+          elsif json[:event] == "notification"
+            n = Notification.new(JSON.parse(json[:body]), opts["safe"], opts["img"])
+            n.print_notification
+            print_screen_line
+            # notify-send test
+            n.send_notify_notification
+          elsif json[:event] == "delete"
+            print_delete(json[:body])
+            print_screen_line
+          end
+        end
+      end
+    end
+  end
+end
+
 def timeline_load(account, tl, param)
   uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
 
@@ -155,7 +207,7 @@ def timeline_load(account, tl, param)
 
   req = Net::HTTP::Get.new(uri.request_uri)
   req["Authorization"] = " Bearer " + account["token"]
-
+\
   res = https.request(req)
 
   if res.code != "200"
