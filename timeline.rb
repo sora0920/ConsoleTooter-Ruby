@@ -118,11 +118,11 @@ end
 
 account = load_account
 # tlとかもできれば置き換えたい
-tl = "home"
-tl_id = nil
-limit = 20
+#tl = "home"
+#tl_id = nil
+#limit = 20
 #stream = false
-param = Hash.new
+#param = Hash.new
 #img = test_sixel
 #rev = false
 #safe = false
@@ -204,6 +204,6 @@ else
   end
 
   opts["param"].store("limit", "#{opts["limit"]}")
-  print_timeline(timeline_load(account, opts["tl"], opts["param"]), opts["rev"], opts["param"], opts["img"], false, opts["safe"])
+  print_timeline(timeline_load2(account, opts), opts["rev"], opts["param"], opts["img"], false, opts["safe"])
   print "\e[m"
 end
