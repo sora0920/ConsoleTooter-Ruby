@@ -220,7 +220,9 @@ def stream2(account, opts, notification_only)# tl, param, img, safe, notificatio
             n.print_notification
             print_screen_line
             # notify-send test
-            n.send_notify_notification
+            if opts["notify_x"]
+              n.send_notify_notification
+            end
           elsif json[:event] == "delete"
             print_delete(json[:body])
             print_screen_line
