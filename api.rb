@@ -258,6 +258,32 @@ def timeline_load(account, tl, param)
   return JSON.parse(res.body)
 end
 
+# タイムラインを取得する
+# @param [Hash] account アカウント情報
+# @param [Hash] opts オプション
+# @return [Hash] 指定した件数分のステータスのHash
+def timeline_load2(account, opts)
+  uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{opts["tl"]}")
+
+  uri.query = URI.encode_www_form(opts["param"])
+
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req = Net::HTTP::Get.new(uri.request_uri)
+  req["Authorization"] = " Bearer " + account["token"]
+
+  res = https.request(req)
+
+  if res.code != "200"
+    puts res.code
+    puts res.message
+    puts res.body
+  end
+
+  return JSON.parse(res.body)
+end
+
 # リストのリストを取得して表示する
 # @param [Hash] account アカウント情報
 # @return [nil]
