@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 # gem "rails"
 gem "mime-types"
-gem "ncurses-ruby"
+#gem "ncurses-ruby"
 gem "nokogiri"
 gem "curses"
 
