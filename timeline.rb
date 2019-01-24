@@ -45,62 +45,7 @@ def print_delete(id)
   print "\n"
 end
 
-# img rev safeはoptsに置き換え。 できればstreamも置き換えたいなぁ...
 # なんでstreamとかいう使ってない物まで入ってたんですかねぇ...
-def print_timeline(toots, rev, param, img, stream, safe)
-  if !rev
-    _toots = toots
-    toots = []
-
-    _toots.each{|toot|
-      toots.unshift(toot)
-    }
-  end
-  toots.each{|toot|
-    t = Toot.new(toot)
-    if safe
-      t.to_safe
-    end
-    if t.reblog?
-      t.reblog_parse
-    end
-      t.parse_toot_body
-    if img
-      t.print_user_icon("32", false)
-      t.shortcode2emoji
-    end
-
-    t.print_toot_info
-    if img
-      print "\x1b[5C"
-    end
-    t.print_toot_body
-    if t.reblog?
-      if img
-        print "\x1b[5C"
-        t.print_reblog
-        print "\n\n"
-        if t.images?
-          puts ""
-        end
-      else
-        t.print_reblog_no_sixel
-        print "\e[0m"
-      end
-    end
-    if img
-      t.printimg
-      puts "\n"
-    end
-
-    print "ID: "
-    t.print_post_id
-
-    print_screen_line
-  }
-end
-
-# rev, param, img, safe
 def print_timeline2(toots, opts)
   if !opts["rev"]
     _toots = toots
@@ -110,25 +55,31 @@ def print_timeline2(toots, opts)
       toots.unshift(toot)
     }
   end
+
   toots.each{|toot|
     t = Toot.new(toot)
+
     if opts["safe"]
       t.to_safe
     end
     if t.reblog?
       t.reblog_parse
     end
-      t.parse_toot_body
+
+    t.parse_toot_body
+
     if opts["img"]
       t.print_user_icon("32", false)
       t.shortcode2emoji
     end
 
     t.print_toot_info
+
     if opts["img"]
       print "\x1b[5C"
     end
     t.print_toot_body
+
     if t.reblog?
       if opts["img"]
         print "\x1b[5C"
@@ -172,15 +123,6 @@ def test_notify_send
 end
 
 account = load_account
-# tlとかもできれば置き換えたい
-#tl = "home"
-#tl_id = nil
-#limit = 20
-#stream = false
-#param = Hash.new
-#img = test_sixel
-#rev = false
-#safe = false
 
 # お前にこのコードの未来がかかってるんだよ!!!!!!!
 opts = {
