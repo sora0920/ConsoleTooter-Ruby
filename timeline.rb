@@ -46,6 +46,7 @@ def print_delete(id)
 end
 
 # img rev safeはoptsに置き換え。 できればstreamも置き換えたいなぁ...
+# なんでstreamとかいう使ってない物まで入ってたんですかねぇ...
 def print_timeline(toots, rev, param, img, stream, safe)
   if !rev
     _toots = toots
@@ -55,48 +56,102 @@ def print_timeline(toots, rev, param, img, stream, safe)
       toots.unshift(toot)
     }
   end
-    toots.each{|toot|
-      t = Toot.new(toot)
-      if safe
-        t.to_safe
-      end
-      if t.reblog?
-        t.reblog_parse
-      end
-        t.parse_toot_body
-      if img
-        t.print_user_icon("32", false)
-        t.shortcode2emoji
-      end
+  toots.each{|toot|
+    t = Toot.new(toot)
+    if safe
+      t.to_safe
+    end
+    if t.reblog?
+      t.reblog_parse
+    end
+      t.parse_toot_body
+    if img
+      t.print_user_icon("32", false)
+      t.shortcode2emoji
+    end
 
-      t.print_toot_info
+    t.print_toot_info
+    if img
+      print "\x1b[5C"
+    end
+    t.print_toot_body
+    if t.reblog?
       if img
         print "\x1b[5C"
-      end
-      t.print_toot_body
-      if t.reblog?
-        if img
-          print "\x1b[5C"
-          t.print_reblog
-          print "\n\n"
-          if t.images?
-            puts ""
-          end
-        else
-          t.print_reblog_no_sixel
-          print "\e[0m"
+        t.print_reblog
+        print "\n\n"
+        if t.images?
+          puts ""
         end
+      else
+        t.print_reblog_no_sixel
+        print "\e[0m"
       end
-      if img
-        t.printimg
-        puts "\n"
-      end
+    end
+    if img
+      t.printimg
+      puts "\n"
+    end
 
-      print "ID: "
-      t.print_post_id
+    print "ID: "
+    t.print_post_id
 
-      print_screen_line
+    print_screen_line
+  }
+end
+
+# rev, param, img, safe
+def print_timeline2(toots, opts)
+  if !opts["rev"]
+    _toots = toots
+    toots = []
+
+    _toots.each{|toot|
+      toots.unshift(toot)
     }
+  end
+  toots.each{|toot|
+    t = Toot.new(toot)
+    if opts["safe"]
+      t.to_safe
+    end
+    if t.reblog?
+      t.reblog_parse
+    end
+      t.parse_toot_body
+    if opts["img"]
+      t.print_user_icon("32", false)
+      t.shortcode2emoji
+    end
+
+    t.print_toot_info
+    if opts["img"]
+      print "\x1b[5C"
+    end
+    t.print_toot_body
+    if t.reblog?
+      if opts["img"]
+        print "\x1b[5C"
+        t.print_reblog
+        print "\n\n"
+        if t.images?
+          puts ""
+        end
+      else
+        t.print_reblog_no_sixel
+        print "\e[0m"
+      end
+    end
+    if opts["img"]
+      t.printimg
+      puts "\n"
+    end
+
+    print "ID: "
+    t.print_post_id
+
+    print_screen_line
+  }
 end
 
 def test_sixel
@@ -204,6 +259,7 @@ else
   end
 
   opts["param"].store("limit", "#{opts["limit"]}")
-  print_timeline(timeline_load2(account, opts), opts["rev"], opts["param"], opts["img"], false, opts["safe"])
+  print_timeline2(timeline_load2(account, opts), opts)
+
   print "\e[m"
 end
