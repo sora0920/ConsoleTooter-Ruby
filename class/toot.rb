@@ -1,5 +1,5 @@
 class Toot
-  attr_reader :id, :emojis
+  attr_reader :id, :emojis, :content, :in_reply_to_id, :sensitive, :spoiler_text, :visibility, :language
 
   def initialize(toot)
     @id = toot["id"]
@@ -110,7 +110,7 @@ class Toot
     print "\e[33m"
     print "#{@account.display_name}"
     print "\e[32m"
-    print " @#{@account.acct} "
+    print " @#{@account.acct}#{@account.lock_status} "
 
     print "\e[0m#{Time.parse(@created_at).localtime.strftime("%Y/%m/%d %H:%M")} \n"
   end
@@ -165,6 +165,10 @@ class Toot
         system("curl -L -k -s #{img["preview_url"]} | img2sixel")
       end
     end
+  end
+
+  def print_post_id
+    print "#{@id}\n"
   end
 
   def print_user_icon(size, reblog)

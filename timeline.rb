@@ -1,17 +1,13 @@
 #!/usr/bin/env ruby
 
 #require "ncurses.rb"
-require "json"
-require "net/http"
-require "uri"
-require "thread"
-require "nokogiri"
 require "optparse"
 require "time"
 require_relative "./account.rb"
 require_relative "./class/user.rb"
 require_relative "./class/toot.rb"
 require_relative "./class/notification.rb"
+require_relative "./api.rb"
 
 def sse_parse(stream)
   data = ""
@@ -33,70 +29,6 @@ def sse_parse(stream)
   }
 end
 
-def stream(account, tl, param, img, safe, notification_only)
-  uri = URI.parse("https://#{account["host"]}/api/v1/streaming/#{tl}")
-
-  uri.query = URI.encode_www_form(param)
-
-  buffer = ""
-
-  Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |https|
-    req = Net::HTTP::Get.new(uri)
-    req["Authorization"] = " Bearer " + account["token"]
-
-    https.request(req) do |res|
-      if notification_only
-        puts "Connect(Notification): #{res.code}"
-      else
-        puts "Connect(#{tl}): #{res.code}"
-      end
-
-      if res.code != "200"
-        puts res.message
-        puts res.body
-      end
-      res.read_body do |chunk|
-        buffer += chunk
-        while index = buffer.index(/\r\n\r\n|\n\n/)
-          stream = buffer.slice!(0..index)
-          json = sse_parse(stream)
-          if json[:event] == "update" && !notification_only
-            ary = []
-            ary.push(JSON.parse(json[:body]))
-            print_timeline(ary, false, param, img, true, safe)
-          elsif json[:event] == "notification"
-            n = Notification.new(JSON.parse(json[:body]), safe, img)
-            n.print_notification
-            print_screen_line
-          end
-        end
-      end
-    end
-  end
-end
-
-def timeline_load(account, tl, param)
-  uri = URI.parse("https://#{account["host"]}/api/v1/timelines/#{tl}")
-
-  uri.query = URI.encode_www_form(param)
-
-  https = Net::HTTP.new(uri.host, uri.port)
-  https.use_ssl = true
-
-  req = Net::HTTP::Get.new(uri.request_uri)
-  req["Authorization"] = " Bearer " + account["token"]
-
-  res = https.request(req)
-
-  if res.code != "200"
-    puts res.code
-    puts res.message
-    puts res.body
-  end
-
-  return JSON.parse(res.body)
-end
-
 def print_screen_line
   term_cols = `tput cols`
   lines = ""
@@ -106,8 +38,16 @@ def print_screen_line
   puts lines
 end
 
-def print_timeline(toots, rev, param, img, stream, safe)
-  if !rev
+def print_delete(id)
+  print "\e[m"
+  print "💥 Delete #{Time.new.localtime.strftime("%Y/%m/%d %H:%M")}\n"
+  print "ID: #{id}"
+  print "\n"
+end
+
+# なんでstreamとかいう使ってない物まで入ってたんですかねぇ...
+def print_timeline2(toots, opts)
+  if !opts["rev"]
     _toots = toots
     toots = []
 
@@ -115,63 +55,53 @@ def print_timeline(toots, rev, param, img, stream, safe)
       toots.unshift(toot)
     }
   end
-    toots.each{|toot|
-      t = Toot.new(toot)
-      if safe
-        t.to_safe
-      end
-      if t.reblog?
-        t.reblog_parse
-      end
-        t.parse_toot_body
-      if img
-        t.print_user_icon("32", false)
-        t.shortcode2emoji
-      end
 
-      t.print_toot_info
-      if img
+  toots.each{|toot|
+    t = Toot.new(toot)
+
+    if opts["safe"]
+      t.to_safe
+    end
+    if t.reblog?
+      t.reblog_parse
+    end
+
+    t.parse_toot_body
+
+    if opts["img"]
+      t.print_user_icon("32", false)
+      t.shortcode2emoji
+    end
+
+    t.print_toot_info
+
+    if opts["img"]
+      print "\x1b[5C"
+    end
+    t.print_toot_body
+
+    if t.reblog?
+      if opts["img"]
         print "\x1b[5C"
-      end
-      t.print_toot_body
-      if t.reblog?
-        if img
-          print "\x1b[5C"
-          t.print_reblog
-          print "\n\n"
-          if t.images?
-            puts ""
-          end
-        else
-          t.print_reblog_no_sixel
-          print "\e[0m"
+        t.print_reblog
+        print "\n\n"
+        if t.images?
+          puts ""
         end
+      else
+        t.print_reblog_no_sixel
+        print "\e[0m"
       end
-      if img
-        t.printimg
-        puts "\n"
-      end
-      print_screen_line
-    }
-end
+    end
+    if opts["img"]
+      t.printimg
+      puts "\n"
+    end
 
-def listlist(account)
-  uri = URI.parse("https://#{account["host"]}/api/v1/lists")
+    print "ID: "
+    t.print_post_id
 
-  https = Net::HTTP.new(uri.host, uri.port)
-  https.use_ssl = true
-
-  req = Net::HTTP::Get.new(uri.path)
-  req["Authorization"] = " Bearer " + account["token"]
-
-  res = https.request(req)
-
-  lists = JSON.parse(res.body)
-
-  puts "ID  Title\n\n"
-  lists.each{ |list|
-    li = list
-    puts "#{li["id"]}  #{li["title"]}"
+    print_screen_line
   }
 end
 
@@ -188,65 +118,71 @@ def test_sixel
   return sixel_term && sixel_com
 end
 
+def test_notify_send
+  return system("which notify-send > /dev/null 2>&1")
+end
 
 account = load_account
-tl = "home"
-tl_id = nil
-limit = 20
-stream = false
-param = Hash.new
-img = test_sixel
-rev = false
-safe = false
 
-#flags = {stream:false, img:false, rev:false, safe:false}
+# お前にこのコードの未来がかかってるんだよ!!!!!!!
+opts = {
+  "stream" => false,
+  "img" => test_sixel,
+  "rev" => false,
+  "safe" => false,
+  "notify_x" => test_notify_send,
+  "tl" => "home",
+  "tl_id" => nil,
+  "limit" => 20,
+  "param" => Hash.new
+}
 
 OptionParser.new do |opt|
-  opt.on('--home',          'Get the home timeline'                                 ) { tl = "home" }
-  opt.on('--local',         'Get the local timeline'                                ) { tl = "local" }
-  opt.on('--public',        'Get the public timeline'                               ) { tl = "public" }
+  opt.on('--home',          'Get the home timeline'                                 ) { opts["tl"] = "home" }
+  opt.on('--local',         'Get the local timeline'                                ) { opts["tl"] = "local" }
+  opt.on('--public',        'Get the public timeline'                               ) { opts["tl"] = "public" }
   opt.on('--list [ID]',     'Get the list timeline'                                 ) { |id|
-                                                                                         tl = "list"
-                                                                                         tl_id = id
+                                                                                         opts["tl"] = "list"
+                                                                                         opts["tl_id"] = id
                                                                                       }
   opt.on('--hashtag [tag]', 'Get the hashtag timeline'                              ) { |tag|
-                                                                                         tl = "hashtag"
-                                                                                         tl_id = tag
+                                                                                         opts["tl"] = "hashtag"
+                                                                                         opts["tl_id"] = tag
                                                                                       }
-  opt.on('--stream',        'Use streaming'                                         ) { stream = true }
-  opt.on('--onlymedia',     'Get posts only included images'                        ) { param.store("only_media", "1") }
-  opt.on('--noimg',         "Don't be displayd image"                               ) { img = false }
-  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { safe = true }
-  opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| limit = lim }
+  opt.on('--stream',        'Use streaming'                                         ) { opts["stream"] = true }
+  opt.on('--onlymedia',     'Get posts only included images'                        ) { opts["param"].store("only_media", "1") }
+  opt.on('--noimg',         "Don't be displayd image"                               ) { opts["img"] = false }
+  opt.on('--safe',          "Don't be displayd NSFW images and CW contents"         ) { opts["safe"] = true }
+  opt.on('--limit [1-40]',  "Displayd limit number (Don't work, if using streaming)") { |lim| opts["limit"] = lim }
   opt.on('--lists',         'Get your lists'                                        ) {
                                                                                          listlist(account)
                                                                                          exit 0
                                                                                       }
-  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { rev = true }
+  opt.on('--rev',           "Reverse the output (Don't work, if using streaming)"   ) { opts["rev"] = true }
 
   opt.parse!(ARGV)
 end
 
-if stream
-  case tl
+if opts["stream"]
+  case opts["tl"]
   when "home" then
-    tl = "user"
+    opts["tl"] = "user"
   when "local" then
-    tl = "public/local"
+    opts["tl"] = "public/local"
   when "list" then
-    param.store("list", "#{tl_id}")
+    opts["param"].store("list", "#{opts["tl_id"]}")
   when "hashtag" then
-    param.store("tag", "#{tl_id}")
+    opts["param"].store("tag", "#{opts["tl_id"]}")
   end
 
   begin
-    if tl == "user"
-      stream(account, tl, param, img, safe, false)
+    if opts["tl"] == "user"
+      stream2(account, opts, false)
     else
       Thread.new{
-        stream(account, tl, param, img, safe, false)
+        stream2(account, opts, false)
       }
-      stream(account, "user", param, img, safe, true)
+      stream2(account, opts, true)
     end
   rescue Interrupt
     puts "\nBye👋"
@@ -254,17 +190,18 @@ if stream
     exit 0
   end
 else
-  case tl
+  case opts["tl"]
   when "local" then
-    tl = "public"
-    param.store("local","1")
+    opts["tl"] = "public"
+    opts["param"].store("local","1")
   when "list" then
-    tl += "/#{tl_id}?"
+    opts["tl"] += "/#{opts["tl_id"]}?"
   when "hashtag" then
-    tl = "tag/#{tl_id}?"
+    opts["tl"] = "tag/#{opts["tl_id"]}?"
   end
 
-  param.store("limit", "#{limit}")
-  print_timeline(timeline_load(account, tl, param), rev, param, img, false, safe)
+  opts["param"].store("limit", "#{opts["limit"]}")
+  print_timeline2(timeline_load2(account, opts), opts)
+
   print "\e[m"
 end

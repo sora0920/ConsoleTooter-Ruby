@@ -19,17 +19,17 @@ class Notification
       case @type
       when "mention" then
         print "\e[37;0;1m"
-        print "↩️  Reply "
+        print "↩️  Reply \n"
       when "favourite" then
         print "\e[37;0;1m"
-        print "🌠 Favourie "
+        print "🌠 Favourited "
         print "\e[33m"
         print "#{@account.display_name}"
         print "\e[32m"
         print " @#{@account.acct} \n"
       when "reblog" then
         print "\e[37;0;1m"
-        print "🔄 Boost "
+        print "🔄 Boosted "
         print "\e[33m"
         print "#{@account.display_name}"
         print "\e[32m"
@@ -54,11 +54,28 @@ class Notification
       end
     when "follow" then
       print "\e[37;0;1m"
-      print "📲 Follow "
+      print "📲 Followed "
       print "\e[33m"
       print "#{@account.display_name}"
       print "\e[32m "
       print "@#{@account.acct} \n"
+      print "\e[0m"
+    end
+  end
+
+  def send_notify_notification
+    case @type
+    when "mention" then
+      @status.parse_toot_body
+      system("notify-send '↩️️  Reply from #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
+    when "favourite" then
+      @status.parse_toot_body
+      system("notify-send '🌠 Favourited #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
+    when "reblog" then
+      @status.parse_toot_body
+      system("notify-send '🔄 Boosted #{@account.display_name}' '#{@status.content}' > /dev/null 2>&1")
+    when "follow" then
+      system("notify-send '📲 Followed #{@account.display_name}' > /dev/null 2>&1")
     end
   end
 end
