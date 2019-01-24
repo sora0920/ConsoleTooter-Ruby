@@ -52,7 +52,7 @@ CLIでMastodonできるやつ
 25. 任意の投稿をふぁぼってパクる機能
 
 # 準備
-- ```./account.json```にhostとtokenをつっこむ
+- ```./account.json```にhostとtokenをつっこむ(コンフリクトするため非推奨)
 
 または
 
