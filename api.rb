@@ -205,6 +205,7 @@ def stream2(account, opts, notification_only)# tl, param, img, safe, notificatio
       if res.code != "200"
         puts res.message
         puts res.body
+        exit 1
       end
       res.read_body do |chunk|
         buffer += chunk
