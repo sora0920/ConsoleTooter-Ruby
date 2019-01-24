@@ -214,7 +214,7 @@ def stream2(account, opts, notification_only)# tl, param, img, safe, notificatio
           if json[:event] == "update" && !notification_only
             ary = []
             ary.push(JSON.parse(json[:body]))
-            print_timeline(ary, false, opts["param"], opts["img"], true, opts["safe"])
+            print_timeline2(ary, opts)
           elsif json[:event] == "notification"
             n = Notification.new(JSON.parse(json[:body]), opts["safe"], opts["img"])
             n.print_notification
